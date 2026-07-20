@@ -1,12 +1,15 @@
 /* ============================================================
    AquaIndex marketing site — behaviour & generated visuals.
-   Vanilla port of the design-system handoff (icons, SVG charts,
-   interactive platform stack, team roster, scroll-reveal motion,
-   drifting live benchmark values). All motion is gated on
-   prefers-reduced-motion and on document visibility.
+   - AquaIndex Global index (AQUGSPOT) loaded from data/aquaindex-global.csv
+   - 12 agricultural-futures ticker with optional live prices
+     (provider + key set in assets/js/config.js)
+   - Interactive platform stack, team roster, scroll-reveal motion
+   All motion gated on prefers-reduced-motion and document visibility.
    ============================================================ */
 (function () {
   'use strict';
+
+  var CFG = window.AQX_CONFIG || {};
 
   /* ---------------------------------------------------------
      Icons — Lucide-style, 24px grid, stroke currentColor.
@@ -24,7 +27,8 @@
     Check: '<path d="M5 12l5 5L20 7"/>',
     Lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>',
     Globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18"/>',
-    Activity: '<path d="M3 12h4l3 8 4-16 3 8h4"/>'
+    Activity: '<path d="M3 12h4l3 8 4-16 3 8h4"/>',
+    External: '<path d="M14 4h6v6M20 4l-9 9M19 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1h5"/>'
   };
 
   function icon(name, size, sw) {
@@ -48,12 +52,12 @@
   }
 
   /* ---------------------------------------------------------
-     Charts — pure SVG, token-driven (window.AqxViz parity).
+     Charts — pure SVG, token-driven.
      --------------------------------------------------------- */
   function indexChart(opts) {
     opts = opts || {};
-    var pts = opts.data || [186,190,188,195,201,199,208,205,214,219,222,231,236,233,242,251,248,259];
-    var h = opts.height || 200, w = 720, pad = 10, id = opts.id || 'idx';
+    var pts = opts.data || [];
+    var h = opts.height || 150, w = 720, pad = 10, id = opts.id || 'idx';
     var stroke = opts.stroke || 'var(--navy-700)';
     var max = Math.max.apply(null, pts), min = Math.min.apply(null, pts);
     var x = function (i) { return pad + (i * (w - pad * 2)) / (pts.length - 1); };
@@ -122,36 +126,6 @@
     return html;
   }
 
-  function regionalBars(opts) {
-    opts = opts || {};
-    var rows = opts.data || [
-      { r: 'MENA', v: 0.92 }, { r: 'US West', v: 0.74 }, { r: 'EU', v: 0.58 },
-      { r: 'LATAM', v: 0.41 }, { r: 'Canada', v: 0.33 }
-    ];
-    var max = Math.max.apply(null, rows.map(function (d) { return d.v; }));
-    return '<div style="display:flex;flex-direction:column;gap:12px">' + rows.map(function (d, i) {
-      var bg = i === 0 ? 'var(--aqua-500)' : 'var(--navy-600)';
-      return '<div style="display:flex;align-items:center;gap:12px">' +
-        '<span style="width:74px;font-size:var(--text-xs);color:var(--text-muted);flex:none;text-align:right;font-weight:var(--fw-medium)">' + d.r + '</span>' +
-        '<div style="flex:1;height:10px;background:var(--slate-100);border-radius:var(--radius-pill);overflow:hidden">' +
-        '<div class="aqx-bar" style="width:' + (d.v / max * 100) + '%;height:100%;border-radius:var(--radius-pill);background:' + bg + '"></div></div>' +
-        '<span style="width:52px;font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-strong);font-variant-numeric:tabular-nums">$' + d.v.toFixed(2) + '</span>' +
-        '</div>';
-    }).join('') + '</div>';
-  }
-
-  function priceDiscovery() {
-    var w = 320, h = 200, p = 24;
-    return '<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%" height="auto" style="display:block">' +
-      '<line x1="' + p + '" y1="' + (p - 6) + '" x2="' + p + '" y2="' + (h - p) + '" stroke="var(--viz-axis)" stroke-width="1"/>' +
-      '<line x1="' + p + '" y1="' + (h - p) + '" x2="' + (w - p + 6) + '" y2="' + (h - p) + '" stroke="var(--viz-axis)" stroke-width="1"/>' +
-      '<path d="M' + (p + 6) + ' ' + p + ' C ' + (w * 0.4) + ' ' + (h * 0.5) + ', ' + (w * 0.6) + ' ' + (h * 0.6) + ', ' + (w - p) + ' ' + (h - p - 6) + '" fill="none" stroke="var(--navy-600)" stroke-width="2.25"/>' +
-      '<path d="M' + (p + 6) + ' ' + (h - p - 6) + ' C ' + (w * 0.4) + ' ' + (h * 0.55) + ', ' + (w * 0.6) + ' ' + (h * 0.45) + ', ' + (w - p) + ' ' + p + '" fill="none" stroke="var(--aqua-500)" stroke-width="2.25"/>' +
-      '<circle cx="' + (w * 0.52) + '" cy="' + (h * 0.52) + '" r="5" fill="#fff" stroke="var(--navy-700)" stroke-width="2.5"/>' +
-      '<text x="' + (w * 0.52 + 10) + '" y="' + (h * 0.52 - 6) + '" font-family="var(--font-mono)" font-size="11" fill="var(--text-strong)">benchmark</text>' +
-      '</svg>';
-  }
-
   function sparkline(opts) {
     opts = opts || {};
     var pts = opts.data || [4, 6, 5, 8, 7, 10, 9, 12, 14, 13, 16];
@@ -165,33 +139,179 @@
   }
 
   /* ---------------------------------------------------------
-     Data
+     AquaIndex Global index — from data/aquaindex-global.csv.
+     Until traded prices exist this is the AquaIndex Global
+     index (Bloomberg AQUGSPOT); replace the CSV to update.
      --------------------------------------------------------- */
-  var QUOTES = [
-    ['WATERFOREX™ US-W', '1.0875', '▲ 0.22%', true],
-    ['AQUAFOREX™ EU', '0.5840', '▼ 0.08%', false],
-    ['MENA Regional', '0.9210', '▲ 0.35%', true],
-    ['LATAM Regional', '0.4130', '▲ 0.12%', true],
-    ['Canada Regional', '0.3310', '▼ 0.04%', false],
-    ['Physical · Spot', '2.2980', '▲ 0.18%', true]
+  var FALLBACK_SERIES = [
+    ['2025-01-31', 2.1180], ['2025-02-28', 2.1240], ['2025-03-31', 2.1105],
+    ['2025-04-30', 2.1420], ['2025-05-30', 2.1610], ['2025-06-30', 2.1555],
+    ['2025-07-31', 2.1840], ['2025-08-29', 2.1790], ['2025-09-30', 2.2085],
+    ['2025-10-31', 2.2260], ['2025-11-28', 2.2410], ['2025-12-31', 2.2725],
+    ['2026-01-30', 2.2900], ['2026-02-27', 2.2810], ['2026-03-31', 2.3120],
+    ['2026-04-30', 2.3390], ['2026-05-29', 2.3305], ['2026-06-30', 2.3450]
   ];
 
+  function parseCsv(text) {
+    var rows = [];
+    text.split(/\r?\n/).forEach(function (line) {
+      var parts = line.split(',');
+      if (parts.length < 2) return;
+      var v = parseFloat(parts[1]);
+      if (!isNaN(v) && /\d{4}-\d{2}-\d{2}/.test(parts[0])) rows.push([parts[0].trim(), v]);
+    });
+    return rows;
+  }
+
+  function fmtPct(p) {
+    return (p >= 0 ? '▲ ' : '▼ ') + Math.abs(p).toFixed(2) + '%';
+  }
+
+  function renderIndex(rows) {
+    if (!rows || rows.length < 2) rows = FALLBACK_SERIES;
+    var values = rows.map(function (r) { return r[1]; });
+    var last = rows[rows.length - 1], prev = rows[rows.length - 2];
+    var delta = (last[1] / prev[1] - 1) * 100;
+
+    // YTD: against the last print of the previous calendar year (or the first row).
+    var lastYear = last[0].slice(0, 4);
+    var ytdBase = rows[0];
+    for (var i = rows.length - 1; i >= 0; i--) {
+      if (rows[i][0].slice(0, 4) < lastYear) { ytdBase = rows[i]; break; }
+    }
+    var ytd = (last[1] / ytdBase[1] - 1) * 100;
+
+    var el;
+    if ((el = document.getElementById('tickerIndexVal'))) el.textContent = last[1].toFixed(4);
+    if ((el = document.getElementById('tickerIndexDelta'))) {
+      el.textContent = fmtPct(delta);
+      el.className = delta >= 0 ? 'up' : 'dn';
+    }
+    if ((el = document.getElementById('heroIndexVal'))) el.textContent = last[1].toFixed(4);
+    if ((el = document.getElementById('heroYtd'))) el.textContent = fmtPct(ytd).replace('▲ ', '+').replace('▼ ', '−') + ' YTD';
+    if ((el = document.getElementById('heroSpark'))) el.innerHTML = sparkline({ data: values.slice(-11) });
+    if ((el = document.getElementById('heroChart'))) el.innerHTML = indexChart({ data: values, id: 'hero', height: 150 });
+    if ((el = document.getElementById('heroTable'))) {
+      var recent = rows.slice(-5).reverse();
+      el.innerHTML = '<div class="ws-hero__tblhd"><span>Date</span><span>Index</span></div>' +
+        recent.map(function (r) {
+          return '<div class="ws-hero__tblr"><span>' + r[0] + '</span><strong>' + r[1].toFixed(4) + '</strong></div>';
+        }).join('');
+    }
+  }
+
+  function loadIndex() {
+    fetch('data/aquaindex-global.csv')
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+      .then(function (t) { renderIndex(parseCsv(t)); })
+      .catch(function () { renderIndex(FALLBACK_SERIES); });
+  }
+
+  /* ---------------------------------------------------------
+     Agricultural futures ticker.
+     Static indicative prices; live prices replace them when a
+     provider + API key are set in assets/js/config.js.
+     Symbol maps may need adjusting to your API plan's list.
+     --------------------------------------------------------- */
+  var FUTURES = [
+    { label: 'Corn',          ph: '445.50',  chg: '▲ 0.34%', up: true,  cpa: 'CORN',    ninjas: 'corn',          av: 'CORN'   },
+    { label: 'Wheat',         ph: '562.25',  chg: '▼ 0.21%', up: false, cpa: 'WHEAT',   ninjas: 'wheat',         av: 'WHEAT'  },
+    { label: 'Soybean',       ph: '1048.75', chg: '▲ 0.18%', up: true,  cpa: 'SOYBEAN', ninjas: 'soybean',       av: null     },
+    { label: 'Soybean Oil',   ph: '47.62',   chg: '▲ 0.42%', up: true,  cpa: 'SOYBEAN-OIL',  ninjas: 'soybean_oil',  av: null },
+    { label: 'Soybean Meal',  ph: '301.10',  chg: '▼ 0.15%', up: false, cpa: 'SOYBEAN-MEAL', ninjas: 'soybean_meal', av: null },
+    { label: 'Oat',           ph: '338.25',  chg: '▲ 0.09%', up: true,  cpa: 'OAT',     ninjas: 'oat',           av: null     },
+    { label: 'Rough Rice',    ph: '15.24',   chg: '▼ 0.06%', up: false, cpa: 'RICE',    ninjas: 'rough_rice',    av: null     },
+    { label: 'Coffee',        ph: '231.40',  chg: '▲ 0.55%', up: true,  cpa: 'COFFEE',  ninjas: 'coffee',        av: 'COFFEE' },
+    { label: 'Sugar',         ph: '19.36',   chg: '▼ 0.12%', up: false, cpa: 'SUGAR',   ninjas: 'sugar',         av: 'SUGAR'  },
+    { label: 'Cocoa',         ph: '7412.00', chg: '▲ 0.71%', up: true,  cpa: 'COCOA',   ninjas: 'cocoa',         av: null     },
+    { label: 'Cotton',        ph: '69.18',   chg: '▲ 0.14%', up: true,  cpa: 'COTTON',  ninjas: 'cotton',        av: 'COTTON' },
+    { label: 'Orange Juice',  ph: '264.90',  chg: '▼ 0.33%', up: false, cpa: 'OJ',      ninjas: 'orange_juice',  av: null     }
+  ];
+
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  function buildTickerBelt(el) {
+    var belt = FUTURES.concat(FUTURES); // two copies for a seamless loop
+    el.innerHTML = belt.map(function (q, i) {
+      var idx = i % FUTURES.length;
+      return '<span class="ws-ticker__item">' +
+        '<span class="ws-ticker__sym">' + esc(q.label) + '</span>' +
+        '<span class="ws-ticker__num" data-fut-price="' + idx + '">' + esc(q.ph) + '</span>' +
+        '<i class="' + (q.up ? 'up' : 'dn') + '" data-fut-chg="' + idx + '">' + esc(q.chg) + '</i></span>';
+    }).join('');
+  }
+
+  function setFuturePrice(idx, price) {
+    if (price == null || isNaN(price)) return;
+    var txt = Number(price).toFixed(2);
+    document.querySelectorAll('[data-fut-price="' + idx + '"]').forEach(function (el) { el.textContent = txt; });
+    // Static change markers no longer apply once prices are live.
+    document.querySelectorAll('[data-fut-chg="' + idx + '"]').forEach(function (el) { el.textContent = ''; });
+  }
+
+  var PRICE_ADAPTERS = {
+    commoditypriceapi: function (key) {
+      var syms = FUTURES.map(function (f) { return f.cpa; }).join(',');
+      fetch('https://api.commoditypriceapi.com/v2/latest?apiKey=' + encodeURIComponent(key) + '&symbols=' + encodeURIComponent(syms))
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          var rates = d.rates || (d.data && d.data.rates) || {};
+          FUTURES.forEach(function (f, i) {
+            var v = rates[f.cpa];
+            setFuturePrice(i, typeof v === 'object' && v ? v.rate || v.price : v);
+          });
+        }).catch(function () { /* keep static prices */ });
+    },
+    apininjas: function (key) {
+      FUTURES.forEach(function (f, i) {
+        if (!f.ninjas) return;
+        fetch('https://api.api-ninjas.com/v1/commodityprice?name=' + encodeURIComponent(f.ninjas), {
+          headers: { 'X-Api-Key': key }
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (d) { setFuturePrice(i, d && d.price); })
+          .catch(function () { /* keep static price */ });
+      });
+    },
+    alphavantage: function (key) {
+      FUTURES.forEach(function (f, i) {
+        if (!f.av) return; // Alpha Vantage only covers Corn, Wheat, Sugar, Coffee, Cotton
+        fetch('https://www.alphavantage.co/query?function=' + f.av + '&interval=monthly&apikey=' + encodeURIComponent(key))
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            var v = d && d.data && d.data[0] && parseFloat(d.data[0].value);
+            setFuturePrice(i, v);
+          })
+          .catch(function () { /* keep static price */ });
+      });
+    }
+  };
+
+  function initLivePrices() {
+    var adapter = PRICE_ADAPTERS[CFG.pricesProvider];
+    if (!adapter || !CFG.pricesApiKey) return;
+    var run = function () { adapter(CFG.pricesApiKey); };
+    run();
+    if (CFG.pricesProvider !== 'alphavantage') {
+      setInterval(run, Math.max(60000, CFG.refreshMs || 300000));
+    }
+  }
+
+  /* ---------------------------------------------------------
+     Platform stack — pricing happens in the free market on the
+     platform itself, so there is no separate pricing-engine or
+     index layer here.
+     --------------------------------------------------------- */
   var LAYERS = [
-    { icon: 'Chart', name: 'Pricing engine', tag: 'AQX-PRC',
-      d: 'Impartial water pricing extracted from transparent global commodity markets and verified physical source data.',
-      kv: [['Inputs', 'Agricultural futures · footprint · yield'], ['Cadence', 'Daily'], ['Output', 'Reference price / m³']] },
-    { icon: 'Activity', name: 'Water index layer', tag: 'AQX-IDX',
-      d: 'Composite and regional indexes published daily — the benchmark layer every instrument and venue references.',
-      kv: [['Series', 'Composite · 5 regions'], ['Method', 'Patented'], ['Distribution', 'API · feed · terminal']] },
     { icon: 'Registry', name: 'Collateral registry', tag: 'AQX-REG',
       d: 'A permissioned registry of certified, ringfenced water reserves and the obligations secured against them.',
-      kv: [['Records', 'Reserves · liens · titles'], ['Audit', 'Continuous'], ['Access', 'Permissioned']] },
+      kv: [['Records', 'Reserves · liens · titles'], ['Audit', 'Quarterly'], ['Access', 'Permissioned']] },
     { icon: 'Shield', name: 'Asset verification', tag: 'AQX-VER',
       d: 'Quality, mineral content, and volume verification of physical sources by accredited inspectors.',
       kv: [['Checks', 'Quality · volume · title'], ['Status', 'Verified / pending'], ['Renewal', 'Periodic re-inspection']] },
     { icon: 'Issue', name: 'Tokenization layer', tag: 'AQX-TOK',
       d: 'Digital representation of verified water-backed instruments — one implementation layer within the stack.',
-      kv: [['Instruments', 'WATERCOIN™ · AQUACOIN™'], ['Record', 'Transparent ownership'], ['Backing', 'Verified reserves']] },
+      kv: [['Instruments', 'WATERCOIN™'], ['Record', 'Transparent ownership'], ['Backing', 'Verified reserves']] },
     { icon: 'Redeem', name: 'Redemption logic', tag: 'AQX-RDM',
       d: 'Rules governing conversion of instruments back into physical delivery or settlement value.',
       kv: [['Modes', 'Physical · cash-settled'], ['Window', 'Defined per instrument'], ['Settlement', 'Scheduled']] },
@@ -206,90 +326,11 @@
       kv: [['Views', 'Positions · reserves · audit'], ['Export', 'CSV · PDF'], ['Cadence', 'Real-time']] }
   ];
 
-  var TEAM = [
-    { n: 'Yaacov Shirazi', mono: 'YS', role: 'Founder, Chairman & CEO', featured: true,
-      bio: 'Developer of the AquaIndex method and the patented intellectual property for trading water as a commodity. Decades of experience financing and trading commodities across the agricultural and energy sectors, with several years in high-tech ventures.',
-      tags: ['Water markets', 'Commodities', 'Intellectual property'] },
-    { n: 'Robert Gaffney', mono: 'RG', role: 'AquaIndex Exchange CEO',
-      bio: 'Senior executive across derivatives and prime brokerage — former COO & Managing Director of UBS Securities Prime Brokerage Services and COO of ABN AMRO Global Futures.',
-      tags: ['Derivatives', 'Exchange operations'] },
-    { n: 'Don Horwitz', mono: 'DH', role: 'AquaIndex Exchange CRO',
-      bio: 'General counsel and chief regulatory officer across derivatives exchanges, including the North American Derivatives Exchange and OneChicago; Managing Director at Oyster Consulting.',
-      tags: ['Legal', 'Compliance'] },
-    { n: 'Elon Bezalely', mono: 'EB', role: 'Chief Research & Operations Officer',
-      bio: 'Thirty years across derivatives and trading systems — former hedge-fund quant trader and Head of Options at the First International Bank of Israel. M.A. in Mathematics, Cambridge.',
-      tags: ['Quantitative research', 'Trading systems'] },
-    { n: 'Ronald Filler', mono: 'RF', role: 'Exchange Public Director',
-      bio: 'Professor of Law and Director of the Financial Services Law Institute at New York Law School; Public Director of the NFA; former Managing Director at Lehman Brothers.',
-      tags: ['Regulation', 'Futures law'] },
-    { n: 'Linda Allen', mono: 'LA', role: 'Special Adviser & Risk Consultant',
-      bio: 'William F. Aldinger Chair in Banking and Finance at Baruch College, CUNY. Author of leading texts on credit, market, and operational risk; co-editor of the Journal of Credit Risk.',
-      tags: ['Risk', 'Banking & finance'] },
-    { n: 'Paul Peterson', mono: 'PP', role: 'Economics & Business Consultant',
-      bio: 'Professor at the University of Illinois; 23 years as Director of Commodity Research & Product Development at the Chicago Mercantile Exchange. Ph.D. in Agricultural Economics.',
-      tags: ['Commodity research', 'Market design'] },
-    { n: 'Sanjeev Dutta', mono: 'SD', role: 'Senior Advisor, MENA & APAC',
-      bio: '30+ years in commodities, financial services, and bilateral trade — former Executive Director for Commodities & Financial Services at DMCC and CEO of the UAE-India Business Council.',
-      tags: ['Global trade', 'Governance'] },
-    { n: 'James Bernard', mono: 'JB', role: 'Senior Advisor, Tokenomics & Trading',
-      bio: 'Founding member of the Dubai Global Blockchain Council and former Director at DMCC Free Zone; two decades building commodity and digital-asset ecosystems.',
-      tags: ['Digital assets', 'Ecosystems'] }
-  ];
-
-  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-
-  /* ---------------------------------------------------------
-     Builders for generated sections
-     --------------------------------------------------------- */
-  function buildTickerBelt(el) {
-    var belt = QUOTES.concat(QUOTES);
-    el.innerHTML = belt.map(function (q) {
-      return '<span class="ws-ticker__item">' +
-        '<span class="ws-ticker__sym">' + esc(q[0]) + '</span>' +
-        '<span class="ws-ticker__num">' + esc(q[1]) + '</span>' +
-        '<i class="' + (q[3] ? 'up' : 'dn') + '">' + esc(q[2]) + '</i></span>';
-    }).join('');
-  }
-
   function badge(text, variant, mono, style) {
     var cls = 'aqx-badge aqx-badge--' + (variant || 'neutral') + (mono ? ' aqx-badge--mono' : '');
     return '<span class="' + cls + '"' + (style ? ' style="' + style + '"' : '') + '>' + esc(text) + '</span>';
   }
 
-  function buildTeam(root) {
-    var feat = TEAM[0];
-    var rest = TEAM.slice(1);
-    var featTags = feat.tags.map(function (t) { return badge(t, 'neutral'); }).join('');
-    var featEl = root.querySelector('.ws-team__feat');
-    featEl.innerHTML =
-      '<div class="ws-team__feathd">' +
-        '<div class="ws-team__pt ws-team__pt--lg" aria-hidden="true"><span>' + esc(feat.mono) + '</span></div>' +
-        '<div><h3>' + esc(feat.n) + '</h3>' +
-          '<div class="ws-team__role">' + esc(feat.role) + '</div>' +
-          '<div class="ws-team__tags">' + featTags + '</div></div>' +
-        '<a class="aqx-btn aqx-btn--onDeep aqx-btn--md aqx-iconbtn" href="#" aria-label="' + esc(feat.n) + ' on LinkedIn" title="' + esc(feat.n) + ' on LinkedIn">' + LINKEDIN + '</a>' +
-      '</div>' +
-      '<p class="ws-team__bio">' + esc(feat.bio) + '</p>';
-
-    var grid = root.querySelector('.ws-team__grid');
-    grid.innerHTML = rest.map(function (m) {
-      var tags = m.tags.map(function (t) { return badge(t, 'neutral'); }).join('');
-      return '<div class="ws-team__card">' +
-        '<div class="ws-team__cardhd">' +
-          '<div class="ws-team__pt" aria-hidden="true"><span>' + esc(m.mono) + '</span></div>' +
-          '<a class="aqx-btn aqx-btn--ghost aqx-btn--sm aqx-iconbtn" href="#" aria-label="' + esc(m.n) + ' on LinkedIn" title="' + esc(m.n) + ' on LinkedIn">' +
-            LINKEDIN.replace('width="16" height="16"', 'width="15" height="15"') + '</a>' +
-        '</div>' +
-        '<h3>' + esc(m.n) + '</h3>' +
-        '<div class="ws-team__role">' + esc(m.role) + '</div>' +
-        '<p class="ws-team__bio">' + esc(m.bio) + '</p>' +
-        '<div class="ws-team__tags">' + tags + '</div></div>';
-    }).join('');
-  }
-
-  /* ---------------------------------------------------------
-     Interactive platform stack
-     --------------------------------------------------------- */
   function initPlatform(root, reduced) {
     var listEl = root.querySelector('.ws-plat__list');
     var pathEl = root.querySelector('.ws-plat__path');
@@ -326,45 +367,129 @@
         '</div>' +
         '<p class="ws-plat__desc">' + esc(L.d) + '</p>' +
         '<div class="ws-plat__kv">' + kv + '</div>';
-      // trigger entrance transition (setTimeout, capture/hidden safe)
       setTimeout(function () { bodyEl.classList.add('is-shown'); }, 30);
     }
 
-    function startCycle() {
-      if (touched || reduced) return;
-      timer = setInterval(function () { render((active + 1) % LAYERS.length); }, 3400);
+    function stopCycle() {
+      touched = true;
+      if (timer) { clearInterval(timer); timer = null; }
     }
 
     rows.forEach(function (r) {
       r.addEventListener('click', function () {
-        touched = true;
-        if (timer) { clearInterval(timer); timer = null; }
+        stopCycle();
         render(parseInt(r.getAttribute('data-i'), 10));
       });
     });
 
+    // Deep links (e.g. the "View tokenization layer" button) select a layer by tag.
+    document.querySelectorAll('[data-platform-select]').forEach(function (a) {
+      a.addEventListener('click', function () {
+        var tag = a.getAttribute('data-platform-select');
+        var i = LAYERS.findIndex(function (l) { return l.tag === tag; });
+        if (i >= 0) { stopCycle(); render(i); }
+      });
+    });
+
     render(0);
-    startCycle();
+    if (!reduced) {
+      timer = setInterval(function () { if (!touched) render((active + 1) % LAYERS.length); }, 3400);
+    }
   }
 
   /* ---------------------------------------------------------
-     Live drifting benchmark value
+     Team — roster order and links per company notes.
+     Portraits are monogram placeholders pending photography.
      --------------------------------------------------------- */
-  function initLiveValues(reduced) {
-    document.querySelectorAll('[data-live]').forEach(function (el) {
-      var base = parseFloat(el.getAttribute('data-base')) || 2.3450;
-      var dp = parseInt(el.getAttribute('data-dp'), 10);
-      if (isNaN(dp)) dp = 4;
-      var step = parseFloat(el.getAttribute('data-step')) || 0.0024;
-      var interval = parseInt(el.getAttribute('data-interval'), 10) || 2200;
-      var v = base;
-      el.textContent = v.toFixed(dp);
-      if (reduced) return;
-      setInterval(function () {
-        var next = v + (Math.random() - 0.47) * step;
-        v = Math.min(base * 1.012, Math.max(base * 0.99, next));
-        el.textContent = v.toFixed(dp);
-      }, interval);
+  var TEAM = [
+    { n: 'Yaacov Shirazi', mono: 'YS', role: 'Founder, Chairman & CEO', featured: true,
+      bio: 'Developer of the AquaIndex method and the patented intellectual property for trading water as a commodity. Decades of experience financing and trading commodities across the agricultural and energy sectors, with several years in high-tech ventures.',
+      tags: ['Water markets', 'Commodities', 'Intellectual property'], url: null },
+    { n: 'Robert Gaffney', mono: 'RG', role: 'AquaIndex Exchange CEO',
+      bio: 'Senior executive across derivatives and prime brokerage — former COO & Managing Director of UBS Securities Prime Brokerage Services and COO of ABN AMRO Global Futures.',
+      tags: ['Derivatives', 'Exchange operations'],
+      url: 'https://www.linkedin.com/in/bob-gaffney-7001215/' },
+    { n: 'Don Horwitz', mono: 'DH', role: 'AquaIndex Exchange CRO',
+      bio: 'General counsel and chief regulatory officer across derivatives exchanges, including the North American Derivatives Exchange and OneChicago; Managing Director at Oyster Consulting.',
+      tags: ['Legal', 'Compliance'],
+      url: 'https://www.linkedin.com/in/donald-horwitz-574a116/' },
+    { n: 'Ronald Filler', mono: 'RF', role: 'Exchange Public Director',
+      bio: 'Professor of Law and Director of the Financial Services Law Institute at New York Law School; Public Director of the NFA; former Managing Director at Lehman Brothers.',
+      tags: ['Regulation', 'Futures law'],
+      url: 'https://www.linkedin.com/in/ronald-filler-ba5b999/' },
+    { n: 'Linda Allen', mono: 'LA', role: 'Special Adviser & Risk Consultant',
+      bio: 'William F. Aldinger Chair in Banking and Finance at Baruch College, CUNY. Author of leading texts on credit, market, and operational risk; co-editor of the Journal of Credit Risk.',
+      tags: ['Risk', 'Banking & finance'],
+      url: 'https://www.linkedin.com/in/professor-linda-allen-9588b667/' },
+    { n: 'Paul Peterson', mono: 'PP', role: 'Economics & Business Consultant',
+      bio: 'Professor at the University of Illinois; 23 years as Director of Commodity Research & Product Development at the Chicago Mercantile Exchange. Ph.D. in Agricultural Economics.',
+      tags: ['Commodity research', 'Market design'],
+      url: 'https://www.researchgate.net/profile/Paul-Peterson-8', external: true },
+    { n: 'Sanjeev Dutta', mono: 'SD', role: 'Senior Advisor, MENA & APAC',
+      bio: '30+ years in commodities, financial services, and bilateral trade — former Executive Director for Commodities & Financial Services at DMCC and CEO of the UAE-India Business Council.',
+      tags: ['Global trade', 'Governance'],
+      url: 'https://www.linkedin.com/in/sanjeev-dutta-25b36a4/' },
+    { n: 'James Bernard', mono: 'JB', role: 'Senior Advisor, Tokenomics & Trading',
+      bio: 'Founding member of the Dubai Global Blockchain Council and former Director at DMCC Free Zone; two decades building commodity and digital-asset ecosystems.',
+      tags: ['Digital assets', 'Ecosystems'],
+      url: 'https://www.linkedin.com/in/jamesdbernard/' },
+    { n: 'Elon Bezalely', mono: 'EB', role: 'Chief Research & Operations Officer',
+      bio: 'Thirty years across derivatives and trading systems — former hedge-fund quant trader and Head of Options at a Middle Eastern commercial bank. M.A. in Mathematics, Cambridge.',
+      tags: ['Quantitative research', 'Trading systems'],
+      url: 'https://www.linkedin.com/in/elobez/' }
+  ];
+
+  function teamLink(m, small) {
+    if (!m.url) return '';
+    var ic = m.external
+      ? icon('External', small ? 15 : 16)
+      : (small ? LINKEDIN.replace('width="16" height="16"', 'width="15" height="15"') : LINKEDIN);
+    var label = esc(m.n) + (m.external ? ' profile' : ' on LinkedIn');
+    var cls = small ? 'aqx-btn aqx-btn--ghost aqx-btn--sm aqx-iconbtn' : 'aqx-btn aqx-btn--onDeep aqx-btn--md aqx-iconbtn';
+    return '<a class="' + cls + '" href="' + m.url + '" target="_blank" rel="noopener noreferrer" aria-label="' + label + '" title="' + label + '">' + ic + '</a>';
+  }
+
+  function buildTeam(root) {
+    var feat = TEAM[0];
+    var rest = TEAM.slice(1);
+    var featTags = feat.tags.map(function (t) { return badge(t, 'neutral'); }).join('');
+    var featEl = root.querySelector('.ws-team__feat');
+    featEl.innerHTML =
+      '<div class="ws-team__feathd">' +
+        '<div class="ws-team__pt ws-team__pt--lg" aria-hidden="true"><span>' + esc(feat.mono) + '</span></div>' +
+        '<div><h3>' + esc(feat.n) + '</h3>' +
+          '<div class="ws-team__role">' + esc(feat.role) + '</div>' +
+          '<div class="ws-team__tags">' + featTags + '</div></div>' +
+        teamLink(feat, false) +
+      '</div>' +
+      '<p class="ws-team__bio">' + esc(feat.bio) + '</p>';
+
+    var grid = root.querySelector('.ws-team__grid');
+    grid.innerHTML = rest.map(function (m) {
+      var tags = m.tags.map(function (t) { return badge(t, 'neutral'); }).join('');
+      return '<div class="ws-team__card">' +
+        '<div class="ws-team__cardhd">' +
+          '<div class="ws-team__pt" aria-hidden="true"><span>' + esc(m.mono) + '</span></div>' +
+          teamLink(m, true) +
+        '</div>' +
+        '<h3>' + esc(m.n) + '</h3>' +
+        '<div class="ws-team__role">' + esc(m.role) + '</div>' +
+        '<p class="ws-team__bio">' + esc(m.bio) + '</p>' +
+        '<div class="ws-team__tags">' + tags + '</div></div>';
+    }).join('');
+  }
+
+  /* ---------------------------------------------------------
+     Contact links — single source of truth in config.js.
+     --------------------------------------------------------- */
+  function initContactLinks() {
+    if (!CFG.contactUrl) return;
+    document.querySelectorAll('[data-contact]').forEach(function (a) {
+      a.setAttribute('href', CFG.contactUrl);
+      if (/^https?:/.test(CFG.contactUrl)) {
+        a.setAttribute('target', '_blank');
+        a.setAttribute('rel', 'noopener noreferrer');
+      }
     });
   }
 
@@ -372,9 +497,9 @@
      Scroll-reveal (IntersectionObserver) with sibling stagger
      --------------------------------------------------------- */
   var REVEAL_SELECTOR = [
-    '.ws-sec__head', '.ws-value', '.ws-product', '.ws-fact', '.ws-panel',
+    '.ws-sec__head', '.ws-value', '.ws-fact',
     '.ws-stack__row', '.ws-card', '.ws-method > div:first-child', '.ws-collat > div:first-child',
-    '.ws-tok__card', '.ws-impact__col', '.ws-recog', '.ws-cta__box',
+    '.ws-tok__card', '.ws-impact__col', '.ws-cta__box',
     '.ws-plat__row', '.ws-plat__console', '.ws-team__feat', '.ws-team__card'
   ].join(',');
 
@@ -415,29 +540,20 @@
     if (!root) return;
     var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Charts into their placeholders
-    document.querySelectorAll('[data-chart]').forEach(function (el) {
-      var type = el.getAttribute('data-chart');
-      if (type === 'indexChart') {
-        el.innerHTML = indexChart({ id: el.getAttribute('data-id') || 'idx', height: parseFloat(el.getAttribute('data-height')) || 150 });
-      } else if (type === 'heroWaves') {
-        el.innerHTML = heroWaves();
-      } else if (type === 'regionalBars') {
-        el.innerHTML = regionalBars();
-      } else if (type === 'priceDiscovery') {
-        el.innerHTML = priceDiscovery();
-      } else if (type === 'sparkline') {
-        el.innerHTML = sparkline();
-      }
+    document.querySelectorAll('[data-chart="heroWaves"]').forEach(function (el) {
+      el.innerHTML = heroWaves();
     });
 
     var ticker = document.querySelector('.ws-ticker__belt');
     if (ticker) buildTickerBelt(ticker);
 
+    renderIndex(FALLBACK_SERIES); // instant paint; CSV replaces it as soon as it loads
+    loadIndex();
+    initLivePrices();
     buildTeam(root);
     initPlatform(root, reduced);
+    initContactLinks();
     fillIcons(document);
-    initLiveValues(reduced);
     initReveal(root, reduced);
   }
 

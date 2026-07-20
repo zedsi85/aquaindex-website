@@ -4,41 +4,41 @@
   <meta charset="utf-8">
   <title>AquaIndex — Market infrastructure for water as an asset class</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="AquaIndex develops the pricing methods, indexes, collateralization frameworks, and financial instruments to bring transparency, liquidity, and economic value to physical water resources.">
+  <meta name="description" content="AquaIndex develops the pricing methods, indices, collateralization frameworks, and instruments to bring transparency, liquidity, and price discovery to physical water.">
   <link rel="icon" href="assets/logo/aqua-index-mark-color.png">
   <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
 <div class="ws">
 
-  <!-- ============ Header ============ -->
-  <header class="ws-hd">
-    <div class="ws-container ws-hd__in">
-      <a href="#top" aria-label="AquaIndex home"><img src="assets/logo/aqua-index-logo-white.png" alt="AquaIndex"></a>
-      <nav class="ws-hd__nav">
-        <a href="#problem">Water as an asset</a>
-        <a href="#method">The method</a>
-        <a href="#instruments">Instruments</a>
-        <a href="#tokenization">Tokenization</a>
-        <a href="#platform">Platform</a>
-        <a href="#team">Team</a>
-      </nav>
-      <div class="ws-hd__cta">
-        <a class="aqx-btn aqx-btn--onDeep aqx-btn--sm" href="#company">Contact</a>
-        <a class="aqx-btn aqx-btn--accent aqx-btn--sm" href="#method">Explore AquaIndex</a>
+  <!-- ============ Frozen top: header + ticker ============ -->
+  <div class="ws-top">
+    <header class="ws-hd">
+      <div class="ws-container ws-hd__in">
+        <a href="#top" aria-label="AquaIndex home"><img src="assets/logo/aqua-index-logo-white.png" alt="AquaIndex"></a>
+        <nav class="ws-hd__nav">
+          <a href="#introduction">Introduction</a>
+          <a href="#collateral">Collateralization</a>
+          <a href="#tokenization">Tokenization</a>
+          <a href="#platform">Platform</a>
+          <a href="#benchmark">The Benchmark</a>
+          <a href="#team">Team</a>
+        </nav>
+        <div class="ws-hd__cta">
+          <a class="aqx-btn aqx-btn--onDeep aqx-btn--sm" href="#" data-contact>Contact</a>
+          <a class="aqx-btn aqx-btn--accent aqx-btn--sm" href="#platform">Open Platform</a>
+        </div>
       </div>
-    </div>
-  </header>
-
-  <!-- ============ Ticker ============ -->
-  <div class="ws-ticker" id="top">
-    <div class="ws-container ws-ticker__in">
-      <span class="ws-ticker__tag">AQUA-INDEX™</span>
-      <span class="ws-ticker__val"><span data-live data-base="2.3450" data-dp="4">2.3450</span> <i class="up">▲ 0.41%</i></span>
-      <div class="ws-ticker__marq" aria-hidden="true">
-        <div class="ws-ticker__belt"></div>
+    </header>
+    <div class="ws-ticker" id="top">
+      <div class="ws-container ws-ticker__in">
+        <span class="ws-ticker__tag">AQUA-INDEX™</span>
+        <span class="ws-ticker__val"><span id="tickerIndexVal">—</span> <i class="up" id="tickerIndexDelta"></i></span>
+        <div class="ws-ticker__marq" aria-hidden="true">
+          <div class="ws-ticker__belt"></div>
+        </div>
+        <span class="ws-ticker__src">Indicative · published daily</span>
       </div>
-      <span class="ws-ticker__src">Indicative · published daily</span>
     </div>
   </div>
 
@@ -50,21 +50,21 @@
       <div>
         <div class="ws-eyebrow">Market infrastructure for water</div>
         <h1>Building the market infrastructure for water as a global asset class.</h1>
-        <p>AquaIndex develops the pricing methods, indexes, collateralization frameworks, and financial instruments required to bring transparency, liquidity, and economic value to physical water resources.</p>
+        <p>AquaIndex develops the pricing methods, indices, collateralization frameworks, and instruments required to bring transparency, liquidity, and price discovery to physical water.</p>
         <div class="ws-hero__cta">
-          <a class="aqx-btn aqx-btn--accent aqx-btn--lg" href="#method">Explore AquaIndex <span data-icon="Arrow" data-size="18"></span></a>
-          <a class="aqx-btn aqx-btn--onDeep aqx-btn--lg" href="#problem">Learn about water as an asset</a>
+          <a class="aqx-btn aqx-btn--onDeep aqx-btn--lg" href="#introduction">Learn about water as an asset</a>
         </div>
       </div>
       <div class="ws-hero__panel">
         <div class="ws-hero__panelhd">
           <div>
-            <div class="ws-hero__panelt">AQUA-INDEX™ Composite</div>
-            <div class="ws-hero__panelv"><span data-live data-base="2.3450" data-dp="4">2.3450</span></div>
+            <div class="ws-hero__panelt">AQUA-INDEX™ Global · AQUGSPOT</div>
+            <div class="ws-hero__panelv"><span id="heroIndexVal">—</span></div>
           </div>
-          <div class="ws-hero__paneld"><span data-chart="sparkline"></span> <span>+18.4% YTD</span></div>
+          <div class="ws-hero__paneld"><span id="heroSpark"></span> <span id="heroYtd"></span></div>
         </div>
-        <div data-chart="indexChart" data-id="hero" data-height="150"></div>
+        <div id="heroChart"></div>
+        <div class="ws-hero__tbl" id="heroTable"></div>
         <div class="ws-hero__panelft">
           <div class="aqx-stat aqx-stat--sm aqx-stat--onDeep"><span class="aqx-stat__label">Est. market</span><span class="aqx-stat__value">$1<span class="aqx-stat__unit">T</span></span></div>
           <div class="aqx-stat aqx-stat--sm aqx-stat--onDeep"><span class="aqx-stat__label">Patent claims</span><span class="aqx-stat__value">700<span class="aqx-stat__unit">+</span></span></div>
@@ -86,129 +86,59 @@
     </div>
   </div>
 
-  <!-- ============ The problem ============ -->
-  <section class="ws-sec" id="problem">
+  <!-- ============ Introduction ============ -->
+  <section class="ws-sec" id="introduction">
     <div class="ws-container">
       <div class="ws-sec__head">
-        <div class="ws-eyebrow ws-eyebrow--ink">The problem</div>
+        <div class="ws-eyebrow ws-eyebrow--ink">Introduction</div>
         <h2>Water is essential — but it isn't priced or traded like it.</h2>
         <p>Water prices vary widely across regions, quality, and use case. Despite being vital to agriculture, industry, and human survival, water is not yet consistently priced or traded as a global commodity.</p>
       </div>
-      <div class="ws-split">
-        <div class="ws-panel">
-          <div class="ws-panel__lbl">Indicative price per m³ — selected regions</div>
-          <div data-chart="regionalBars"></div>
-          <div class="ws-panel__note">Differing national price patterns, tax rates, and exit fees create inefficient allocation across markets.</div>
-        </div>
-        <div class="ws-factgrid">
-          <div class="ws-fact"><div class="aqx-stat aqx-stat--md"><span class="aqx-stat__label">Of all water is fresh</span><span class="aqx-stat__value">3<span class="aqx-stat__unit">%</span></span></div></div>
-          <div class="ws-fact"><div class="aqx-stat aqx-stat--md"><span class="aqx-stat__label">Usable for humans &amp; ecosystems</span><span class="aqx-stat__value">&lt;1<span class="aqx-stat__unit">%</span></span></div></div>
-          <div class="ws-fact"><div class="aqx-stat aqx-stat--md"><span class="aqx-stat__label">Fresh water used in agriculture</span><span class="aqx-stat__value">70<span class="aqx-stat__unit">%</span></span></div></div>
-          <div class="ws-fact"><div class="aqx-stat aqx-stat--md"><span class="aqx-stat__label">Water to manufacture one T-shirt</span><span class="aqx-stat__value">4<span class="aqx-stat__unit"> t</span></span></div></div>
-        </div>
+      <div class="ws-factgrid ws-factgrid--row">
+        <div class="ws-fact"><div class="aqx-stat aqx-stat--md"><span class="aqx-stat__label">Of all water is fresh</span><span class="aqx-stat__value">3<span class="aqx-stat__unit">%</span></span></div></div>
+        <div class="ws-fact"><div class="aqx-stat aqx-stat--md"><span class="aqx-stat__label">Usable for humans &amp; ecosystems</span><span class="aqx-stat__value">&lt;1<span class="aqx-stat__unit">%</span></span></div></div>
+        <div class="ws-fact"><div class="aqx-stat aqx-stat--md"><span class="aqx-stat__label">Fresh water used in agriculture</span><span class="aqx-stat__value">70<span class="aqx-stat__unit">%</span></span></div></div>
+        <div class="ws-fact"><div class="aqx-stat aqx-stat--md"><span class="aqx-stat__label">Water required to manufacture one t-shirt</span><span class="aqx-stat__value">4<span class="aqx-stat__unit"> tons</span></span></div></div>
       </div>
     </div>
   </section>
 
-  <!-- ============ Why a market ============ -->
+  <!-- ============ Why a market? ============ -->
   <section class="ws-sec ws-sec--alt" id="why">
     <div class="ws-container">
       <div class="ws-sec__head">
-        <div class="ws-eyebrow ws-eyebrow--ink">Why a market</div>
+        <div class="ws-eyebrow ws-eyebrow--ink">Why a market?</div>
         <h2>A market-based price changes how the world uses water.</h2>
-        <p>Pricing water as a commodity incentivizes producers to allocate resources responsibly — and unlocks capital, conservation, and investment.</p>
+        <p>Pricing water as a commodity incentivizes producers to allocate resources responsibly — and unlocks capital, conservation, and investment in infrastructure.</p>
       </div>
       <div class="ws-why">
         <div class="ws-value"><div class="ws-value__ic"><span data-icon="Chart" data-size="22"></span></div><h3>Price discovery</h3><p>A transparent, market-based price gives every stakeholder a common reference for the value of water.</p></div>
         <div class="ws-value"><div class="ws-value__ic"><span data-icon="Globe" data-size="22"></span></div><h3>Responsible allocation</h3><p>Markets route scarce water to where it is valued most, correcting decades of inefficient appropriation.</p></div>
         <div class="ws-value"><div class="ws-value__ic"><span data-icon="Droplet" data-size="22"></span></div><h3>Conservation</h3><p>When water carries a defined economic value, waste in production processes falls sharply.</p></div>
         <div class="ws-value"><div class="ws-value__ic"><span data-icon="Wallet" data-size="22"></span></div><h3>Collateralization</h3><p>Recognized value lets reserve holders borrow against water without selling the underlying resource.</p></div>
-        <div class="ws-value"><div class="ws-value__ic"><span data-icon="Activity" data-size="22"></span></div><h3>Investment access</h3><p>Institutions gain a new, inflation-resilient asset and a denominator across agricultural stock.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ The method ============ -->
-  <section class="ws-sec" id="method">
-    <div class="ws-container">
-      <div class="ws-sec__head">
-        <div class="ws-eyebrow ws-eyebrow--ink">The method</div>
-        <h2>Patented pricing methodology and water indexes.</h2>
-        <p>AquaIndex extracts an impartial price for water from the transparent prices of agricultural and other commodities, and from the quality and mineral content of physical sources — the foundation for indexes, standards, and a full financial architecture.</p>
-      </div>
-      <div class="ws-method">
-        <div>
-          <ul class="ws-bullets">
-            <li><span class="ws-bullets__ic"><span data-icon="Check" data-size="14"></span></span>Impartial pricing algorithms derived from transparent global commodity markets</li>
-            <li><span class="ws-bullets__ic"><span data-icon="Check" data-size="14"></span></span>A virtual water index — extracted from agricultural futures, water footprint, and yield</li>
-            <li><span class="ws-bullets__ic"><span data-icon="Check" data-size="14"></span></span>Physical water valuation by verified quality and mineral content</li>
-            <li><span class="ws-bullets__ic"><span data-icon="Check" data-size="14"></span></span>Standards and specifications for a water-based futures contract</li>
-          </ul>
-          <div class="ws-method__stats">
-            <div class="aqx-stat aqx-stat--md"><span class="aqx-stat__label">Approved patent claims</span><span class="aqx-stat__value">700<span class="aqx-stat__unit">+</span></span></div>
-            <div class="aqx-stat aqx-stat--md"><span class="aqx-stat__label">Index cadence</span><span class="aqx-stat__value">Daily</span></div>
-            <div class="aqx-stat aqx-stat--md"><span class="aqx-stat__label">Est. water market</span><span class="aqx-stat__value">$1<span class="aqx-stat__unit">T</span></span></div>
-          </div>
-        </div>
-        <div class="ws-card">
-          <div class="ws-card__hd">
-            <div class="ws-card__t">AQUA-INDEX™ Composite</div>
-            <span class="aqx-badge aqx-badge--accent">+18.4% YTD</span>
-          </div>
-          <div data-chart="indexChart" data-id="method" data-height="150"></div>
-          <div class="ws-card__split">
-            <div>
-              <div class="ws-card__lbl">Market-based price discovery</div>
-              <div data-chart="priceDiscovery"></div>
-            </div>
-            <div class="ws-card__legend">
-              <span><i style="background:var(--navy-600)"></i>Demand</span>
-              <span><i style="background:var(--aqua-500)"></i>Supply</span>
-              <span><i style="background:#fff;box-shadow:inset 0 0 0 2px var(--navy-700)"></i>Benchmark</span>
-            </div>
-          </div>
-        </div>
+        <div class="ws-value"><div class="ws-value__ic"><span data-icon="Activity" data-size="22"></span></div><h3>Real world asset</h3><p>Institutions gain a new, inflation-resilient asset that serves as a benchmark across agricultural markets.</p></div>
+        <div class="ws-value"><div class="ws-value__ic"><span data-icon="Redeem" data-size="22"></span></div><h3>Deliverability</h3><p>Collect fresh water at delivery points by truck or by pipeline.</p></div>
       </div>
     </div>
   </section>
 
   <!-- ============ Water as collateral ============ -->
-  <section class="ws-sec ws-sec--alt" id="collateral">
+  <section class="ws-sec" id="collateral">
     <div class="ws-container">
       <div class="ws-collat">
         <div>
           <div class="ws-eyebrow ws-eyebrow--ink">Collateralization</div>
           <h2>Unlock the value held in fresh-water reserves.</h2>
-          <p>Many governments, landowners, and institutions control large quantities of fresh water that have never been drawn upon as a financial asset. AquaIndex assigns that water a recognized value — so reserves can be collateralized to access capital, fund infrastructure, and drive growth, without selling the underlying resource.</p>
+          <p>Many governments, landowners, and institutions control large quantities of fresh water that have never been drawn upon as an asset of known value. AquaIndex assigns that water a recognized value — so reserves can be collateralized to access capital, fund infrastructure, and drive growth, without selling the underlying resource.</p>
           <div style="margin-top:var(--space-6)">
-            <a class="aqx-btn aqx-btn--primary aqx-btn--md" href="#company">Talk to the team <span data-icon="Arrow" data-size="17"></span></a>
+            <a class="aqx-btn aqx-btn--primary aqx-btn--md" href="#" data-contact>Talk to the team <span data-icon="Arrow" data-size="17"></span></a>
           </div>
         </div>
         <div class="ws-stack">
           <div class="ws-stack__row"><div class="ws-stack__bar" style="width:100%;background:var(--navy-700)"><span>Certified physical reserve</span></div><div class="ws-stack__m">Aquifer / lake — audited, ringfenced, quality-verified</div></div>
-          <div class="ws-stack__row"><div class="ws-stack__bar" style="width:78%;background:var(--navy-600)"><span>AquaIndex valuation</span></div><div class="ws-stack__m">Impartial price applied to a defined volume</div></div>
+          <div class="ws-stack__row"><div class="ws-stack__bar" style="width:78%;background:var(--navy-600)"><span>AquaIndex valuation</span></div><div class="ws-stack__m">Impartial free market price applied to a defined volume</div></div>
           <div class="ws-stack__row"><div class="ws-stack__bar" style="width:58%;background:var(--aqua-600)"><span>Collateral facility</span></div><div class="ws-stack__m">Borrow against the asset without selling it</div></div>
-          <div class="ws-stack__row"><div class="ws-stack__bar" style="width:40%;background:var(--aqua-500)"><span>Financial instruments</span></div><div class="ws-stack__m">Bonds, certificates, structured products</div></div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ Financial instruments ============ -->
-  <section class="ws-sec" id="instruments">
-    <div class="ws-container">
-      <div class="ws-sec__head">
-        <div class="ws-eyebrow ws-eyebrow--ink">Financial instruments</div>
-        <h2>A full architecture of water-linked financial products.</h2>
-        <p>From reference indexes to exchanges, certificates, and derivatives — the building blocks of a liquid, transparent market for water.</p>
-      </div>
-      <div class="ws-products">
-        <div class="ws-product"><div class="ws-product__top"><span class="ws-product__ic"><span data-icon="Chart" data-size="20"></span></span><span class="aqx-badge aqx-badge--outline aqx-badge--mono">AQUA-INDEX EXCHANGE™</span></div><h3>Benchmark derivatives</h3><p>A derivatives marketplace for benchmark water prices.</p></div>
-        <div class="ws-product"><div class="ws-product__top"><span class="ws-product__ic"><span data-icon="Globe" data-size="20"></span></span><span class="aqx-badge aqx-badge--outline aqx-badge--mono">AQUA EXCHANGE™</span></div><h3>Physical water market</h3><p>A digital marketplace for trading physical water with delivery.</p></div>
-        <div class="ws-product"><div class="ws-product__top"><span class="ws-product__ic"><span data-icon="Activity" data-size="20"></span></span><span class="aqx-badge aqx-badge--outline aqx-badge--mono">WATERFOREX™ · AQUAFOREX™</span></div><h3>Water-centric indexes</h3><p>Indexes based on commodity prices sourced across global territories.</p></div>
-        <div class="ws-product"><div class="ws-product__top"><span class="ws-product__ic"><span data-icon="Registry" data-size="20"></span></span><span class="aqx-badge aqx-badge--outline aqx-badge--mono">Indexes &amp; benchmarks</span></div><h3>Reference data</h3><p>Daily regional and composite indices for price discovery.</p></div>
-        <div class="ws-product"><div class="ws-product__top"><span class="ws-product__ic"><span data-icon="Shield" data-size="20"></span></span><span class="aqx-badge aqx-badge--outline aqx-badge--mono">Documents of title</span></div><h3>Certificates</h3><p>Negotiable certificates of title — like a warehouse certificate for gold.</p></div>
-        <div class="ws-product"><div class="ws-product__top"><span class="ws-product__ic"><span data-icon="Wallet" data-size="20"></span></span><span class="aqx-badge aqx-badge--outline aqx-badge--mono">Structured products</span></div><h3>Derivatives &amp; hedging</h3><p>Futures, options, insurance mechanisms, and contract pools.</p></div>
       </div>
     </div>
   </section>
@@ -217,7 +147,7 @@
   <section class="ws-sec ws-tok" id="tokenization">
     <div class="ws-container">
       <div class="ws-sec__head">
-        <div class="ws-eyebrow">One implementation layer</div>
+        <div class="ws-eyebrow">First implementation layer</div>
         <h2 style="color:#fff">Tokenization represents verified water assets in digital markets.</h2>
         <p style="color:var(--text-on-deep)">Tokenization is one mechanism AquaIndex uses to represent verified, water-backed instruments digitally — supporting transparent ownership records, trading, and physical redemption. It is part of a broader product ecosystem, not the whole story.</p>
       </div>
@@ -225,7 +155,6 @@
         <div class="ws-tok__top">
           <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
             <span class="aqx-badge aqx-badge--accent">WATERCOIN™</span>
-            <span class="aqx-badge aqx-badge--accent">AQUACOIN™</span>
             <span class="aqx-badge aqx-badge--outline" style="color:#cfe0f0">Proof-of-Stake</span>
             <span class="aqx-badge aqx-badge--outline" style="color:#cfe0f0">Redeemable</span>
           </div>
@@ -238,8 +167,8 @@
           <div class="aqx-life__step aqx-life__step--upcoming"><div class="aqx-life__connector"></div><div class="aqx-life__node"><span style="font-family:var(--font-mono);font-size:12px;font-weight:600">4</span></div><div class="aqx-life__label">Redeem</div><div class="aqx-life__meta">Physical delivery</div></div>
         </div>
         <div class="ws-tok__ft">
-          <span>WATERCOIN™ covers English-speaking sources; AQUACOIN™ covers others — both using AquaIndex pricing methods.</span>
-          <a class="aqx-btn aqx-btn--accent aqx-btn--sm" href="#platform">View tokenization layer <span data-icon="Arrow" data-size="16"></span></a>
+          <span><strong style="color:#fff">Documents of Title:</strong> Each token is a negotiable document of title representing one US barrel of fresh water held in an aquifer in Texas, structurally similar to a warehouse certificate representing the ownership of gold.</span>
+          <a class="aqx-btn aqx-btn--accent aqx-btn--sm" href="#platform" data-platform-select="AQX-TOK">View tokenization layer <span data-icon="Arrow" data-size="16"></span></a>
         </div>
       </div>
     </div>
@@ -275,8 +204,45 @@
     </div>
   </section>
 
+  <!-- ============ The Benchmark ============ -->
+  <section class="ws-sec" id="benchmark">
+    <div class="ws-container">
+      <div class="ws-sec__head">
+        <div class="ws-eyebrow ws-eyebrow--ink">The Benchmark</div>
+        <h2>Patented pricing methodology and water indices.</h2>
+        <p>AquaIndex extracts an impartial price for water from the transparent prices of agricultural and other commodities, and from the quality and mineral content of physical sources — the foundation for indices and benchmarks.</p>
+      </div>
+      <div class="ws-method">
+        <div>
+          <ul class="ws-bullets">
+            <li><span class="ws-bullets__ic"><span data-icon="Check" data-size="14"></span></span>Impartial pricing algorithms derived from transparent global commodity markets</li>
+            <li><span class="ws-bullets__ic"><span data-icon="Check" data-size="14"></span></span><span>A virtual water index — extracted from agricultural futures, <a href="https://www.waterfootprint.org/resources/interactive-tools/product-gallery/" target="_blank" rel="noopener noreferrer">water footprint</a>, and yield</span></li>
+            <li><span class="ws-bullets__ic"><span data-icon="Check" data-size="14"></span></span>Physical water valuation by verified quality and mineral content</li>
+            <li><span class="ws-bullets__ic"><span data-icon="Check" data-size="14"></span></span>Standards and specifications for a water-based futures contract</li>
+            <li><span class="ws-bullets__ic"><span data-icon="Check" data-size="14"></span></span>Patented rights to use valuation pricing for collateralization</li>
+          </ul>
+          <div class="ws-method__stats">
+            <div class="aqx-stat aqx-stat--md"><span class="aqx-stat__label">Approved patent claims</span><span class="aqx-stat__value">700<span class="aqx-stat__unit">+</span></span></div>
+            <div class="aqx-stat aqx-stat--md"><span class="aqx-stat__label">Est. water market</span><span class="aqx-stat__value">$1<span class="aqx-stat__unit">T</span></span></div>
+          </div>
+        </div>
+        <div class="ws-card">
+          <div class="ws-card__hd">
+            <div class="ws-card__t">Index prices on Bloomberg</div>
+            <span class="aqx-badge aqx-badge--accent">Live</span>
+          </div>
+          <div class="ws-bbg">
+            <div class="ws-bbg__row"><span class="ws-bbg__tick">AQUGSPOT Index</span><span class="ws-bbg__d">AquaIndex Global Agricultural Commodity Water Index Spot</span></div>
+            <div class="ws-bbg__row"><span class="ws-bbg__tick">AQUUSPOT Index</span><span class="ws-bbg__d">AquaIndex US Agricultural Commodity Water Index Spot</span></div>
+            <div class="ws-bbg__row"><span class="ws-bbg__tick">AQEASPOT Index</span><span class="ws-bbg__d">AquaIndex East Asia Agricultural Commodity Water Index Spot</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ Impact ============ -->
-  <section class="ws-sec" id="impact">
+  <section class="ws-sec ws-sec--alt" id="impact">
     <div class="ws-container">
       <div class="ws-sec__head">
         <div class="ws-eyebrow ws-eyebrow--ink">Impact</div>
@@ -304,7 +270,7 @@
   </section>
 
   <!-- ============ Team ============ -->
-  <section class="ws-sec ws-sec--alt" id="team" data-screen-label="Team">
+  <section class="ws-sec" id="team" data-screen-label="Team">
     <div class="ws-container">
       <div class="ws-sec__head">
         <div class="ws-eyebrow ws-eyebrow--ink">Leadership</div>
@@ -317,17 +283,14 @@
   </section>
 
   <!-- ============ Global acceptance ============ -->
-  <section class="ws-sec" id="global">
+  <section class="ws-sec ws-sec--alt" id="global">
     <div class="ws-container">
       <div class="ws-sec__head">
         <div class="ws-eyebrow ws-eyebrow--ink">Global acceptance</div>
         <h2>Water is increasingly recognized as a tradable asset.</h2>
         <p>Fresh water has been recognized as a commodity by the EU and other supra-national bodies, and regional trading markets are developing worldwide. AquaIndex builds toward a unified, market-driven benchmark across these markets.</p>
       </div>
-      <div class="ws-recog">
-        <span class="ws-recog__lbl">Scarcity recognized by</span>
-        <div class="ws-recog__row"><span>UN</span><span>World Bank</span><span>IMF</span><span>European Union</span><span>DMCC</span></div>
-      </div>
+      <!-- Quotes from the previous website will be added here once provided. -->
     </div>
   </section>
 
@@ -337,11 +300,7 @@
       <div class="ws-cta__box">
         <div class="ws-eyebrow">Vision &amp; commitment</div>
         <h2>Water is the new blue gold.</h2>
-        <p>AquaIndex is the company building the pricing, collateralization, and market infrastructure to give water its rightful place in the global financial system — transparent, structured, and trusted.</p>
-        <div class="ws-cta__btns">
-          <a class="aqx-btn aqx-btn--accent aqx-btn--lg" href="#method">Explore AquaIndex</a>
-          <a class="aqx-btn aqx-btn--onDeep aqx-btn--lg" href="#company">Contact the team <span data-icon="Arrow" data-size="17"></span></a>
-        </div>
+        <p>AquaIndex is the company building the pricing, collateralization, and market infrastructure to give water its rightful place in the global economic system — transparent, structured, and trusted.</p>
       </div>
     </div>
   </section>
@@ -354,18 +313,19 @@
           <img src="assets/logo/aqua-index-logo-white.png" alt="AquaIndex">
           <p class="ws-ft__tag">Market infrastructure for water as a global asset class — pricing, collateralization, instruments, and tokenization.</p>
         </div>
-        <div><h5>Company</h5><a href="#">Background</a><a href="#">Ramifications</a><a href="#">Water as a commodity</a><a href="#team">Our team</a></div>
-        <div><h5>Markets</h5><a href="#method">The method</a><a href="#instruments">Indexes</a><a href="#instruments">Instruments</a><a href="#tokenization">Tokenization</a></div>
-        <div><h5>Connect</h5><a href="#company">Contact</a><a href="#">FAQ</a><a href="#">Press</a><a href="#">Patents</a></div>
+        <div><h5>Company</h5><a href="#introduction">Background</a><a href="#impact">Ramifications</a><a href="#why">Water as a commodity</a><a href="#team">Our team</a></div>
+        <div><h5>Markets</h5><a href="#benchmark">The Benchmark</a><a href="#benchmark">Indices</a><a href="#tokenization">Tokenization</a><a href="#platform">Platform</a></div>
+        <div><h5>Connect</h5><a href="#" data-contact>Contact</a><a href="#">FAQ</a><a href="#">Press</a><a href="#">Patents</a></div>
       </div>
       <div class="ws-ft__legal">
         <span>© 2026 Aqua-Index, Ltd. · Aqua-Index Holdings Corp · Aqua-Index Exchange, LLC</span>
-        <span>AQUA-INDEX EXCHANGE™ · AQUA EXCHANGE™ · WATERCOIN™ · AQUACOIN™</span>
+        <span>AQUA-INDEX EXCHANGE™ · AQUA EXCHANGE™ · WATERCOIN™</span>
       </div>
     </div>
   </footer>
 
 </div>
+<script src="assets/js/config.js"></script>
 <script src="assets/js/app.js"></script>
 </body>
 </html>
