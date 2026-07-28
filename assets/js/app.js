@@ -256,10 +256,16 @@
         .then(function (r) { return r.json(); })
         .then(function (d) {
           var rates = d.rates || (d.data && d.data.rates) || {};
+          var missing = [];
           FUTURES.forEach(function (f, i) {
             var v = rates[f.cpa];
-            setFuturePrice(i, typeof v === 'object' && v ? v.rate || v.price : v);
+            if (v == null) { missing.push(f.cpa); return; }
+            setFuturePrice(i, typeof v === 'object' ? v.rate || v.price : v);
           });
+          if (missing.length && window.console) {
+            console.warn('commoditypriceapi: no rate for', missing.join(', '),
+              '— check the symbol names in FUTURES (assets/js/app.js) against your plan’s symbol list.');
+          }
         }).catch(function () { /* keep static prices */ });
     },
     apininjas: function (key) {

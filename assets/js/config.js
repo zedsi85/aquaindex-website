@@ -17,8 +17,8 @@ window.AQX_CONFIG = {
        'apininjas'          — https://api-ninjas.com/api/commodityprice  (one request per future)
        'alphavantage'       — https://www.alphavantage.co/  (only Corn, Wheat, Sugar, Coffee,
                               Cotton; monthly values, not streaming)                          */
-  pricesProvider: null,
-  pricesApiKey: '',
+  pricesProvider: 'commoditypriceapi',
+  pricesApiKey: '76b87e4f-5347-4669-b67f-aaa3ab837f1a',
 
   /* How often to refresh live prices (milliseconds). */
   refreshMs: 5 * 60 * 1000
