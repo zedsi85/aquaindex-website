@@ -1,0 +1,6 @@
+# Vercel serves the static site only. The API and the admin page need
+# Azure Static Web Apps (auth + Functions), so they are not published here.
+api
+public/admin
+public/signin.html
+public/staticwebapp.config.json

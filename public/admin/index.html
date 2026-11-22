@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>AquaIndex — Price data admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="/assets/logo/aqua-index-mark-color.png">
+  <link rel="stylesheet" href="/assets/css/styles.css">
+  <link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body class="adm">
+
+  <header class="adm-hd">
+    <div class="adm-wrap adm-hd__in">
+      <a href="/" aria-label="AquaIndex website"><img src="/assets/logo/aqua-index-logo-white.png" alt="AquaIndex"></a>
+      <span class="adm-hd__title">Price data</span>
+      <div class="adm-hd__right">
+        <span class="adm-hd__user" id="userName"></span>
+        <a class="aqx-btn aqx-btn--onDeep aqx-btn--sm" href="/" target="_blank" rel="noopener">View site</a>
+        <a class="aqx-btn aqx-btn--onDeep aqx-btn--sm" href="/.auth/logout?post_logout_redirect_uri=/">Sign out</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="adm-wrap adm-main">
+
+    <aside class="adm-side" aria-label="Assets">
+      <div class="adm-side__hd">
+        <h2>Assets</h2>
+        <button type="button" class="aqx-btn aqx-btn--secondary aqx-btn--sm" id="newAssetBtn">New asset</button>
+      </div>
+      <div class="adm-assets" id="assetList"></div>
+      <p class="adm-hint">The first asset in display order is the one shown in the site's top ticker and opened first in the hero chart.</p>
+    </aside>
+
+    <div class="adm-panel">
+
+      <div class="adm-card adm-empty" id="loadingState">Loading…</div>
+
+      <!-- Excel workbook upload -->
+      <section class="adm-card" id="excelCard" hidden>
+        <div class="adm-card__hd adm-card__hd--tight">
+          <div class="adm-card__lead">
+            <h3>Update from Excel</h3>
+            <p class="adm-hint">Upload the workbook to refresh every chart at once. Each sheet is one asset and one tab on the site: dates in column A, prices in column B. All other columns are ignored and never leave your computer.</p>
+          </div>
+          <label class="adm-file">
+            <input type="file" id="excelFile" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+            <span class="aqx-btn aqx-btn--secondary aqx-btn--md">Choose Excel file</span>
+          </label>
+        </div>
+        <div id="excelPreview" hidden>
+          <div class="adm-filename" id="excelName"></div>
+          <div class="adm-tablewrap">
+            <table class="adm-table">
+              <thead><tr><th scope="col">Sheet / tab</th><th scope="col">Asset</th><th scope="col" class="num">Prices</th><th scope="col">From</th><th scope="col">To</th><th scope="col">What happens</th></tr></thead>
+              <tbody id="excelBody"></tbody>
+            </table>
+          </div>
+          <fieldset class="adm-radio" id="excelMode">
+            <legend class="adm-sr">How to apply the workbook</legend>
+            <label><input type="radio" name="excelMode" value="replace" checked> Make each history match the file exactly</label>
+            <label><input type="radio" name="excelMode" value="merge"> Only add and update dates from the file (keep dates the file does not have)</label>
+          </fieldset>
+          <div class="adm-form__actions">
+            <button type="button" class="aqx-btn aqx-btn--primary aqx-btn--md" id="excelApplyBtn">Update the site</button>
+            <button type="button" class="aqx-btn aqx-btn--ghost aqx-btn--md" id="excelCancelBtn">Cancel</button>
+            <span class="adm-hint" id="excelProgress"></span>
+          </div>
+        </div>
+      </section>
+
+      <div class="adm-card adm-empty" id="emptyState" hidden>
+        <h3>No assets yet</h3>
+        <p>Upload the Excel workbook above to create every asset at once, or create one by hand and add its prices by date. The website chart draws from what you enter here.</p>
+        <button type="button" class="aqx-btn aqx-btn--primary aqx-btn--md" id="firstAssetBtn">Create the first asset</button>
+      </div>
+
+      <!-- Price history -->
+      <section class="adm-card" id="historyCard" hidden>
+        <div class="adm-card__hd">
+          <div>
+            <div class="adm-card__eyebrow" id="historySymbol"></div>
+            <h3 id="historyName"></h3>
+          </div>
+          <div class="adm-stats" id="historyStats"></div>
+        </div>
+        <div id="chart"></div>
+      </section>
+
+      <div class="adm-two" id="entryRow" hidden>
+        <!-- Single price -->
+        <section class="adm-card">
+          <h3>Add or correct a price</h3>
+          <form id="priceForm" class="adm-form" novalidate>
+            <div class="adm-form__row">
+              <label class="adm-field">
+                <span>Date</span>
+                <input type="date" id="priceDate" class="adm-input" required>
+              </label>
+              <label class="adm-field">
+                <span>Price</span>
+                <input type="number" id="priceValue" class="adm-input adm-input--num" step="any" inputmode="decimal" placeholder="0.0000" required>
+              </label>
+            </div>
+            <p class="adm-hint">Saving a date that already has a price replaces it.</p>
+            <div class="adm-form__actions">
+              <button type="submit" class="aqx-btn aqx-btn--primary aqx-btn--md">Save price</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Bulk import -->
+        <section class="adm-card">
+          <h3>Import many prices</h3>
+          <form id="importForm" class="adm-form" novalidate>
+            <label class="adm-field">
+              <span>Paste rows — one <code>date,price</code> per line (dates as YYYY-MM-DD)</span>
+              <textarea id="importText" class="adm-input adm-input--area" rows="5" spellcheck="false" placeholder="2026-07-31,2.3610&#10;2026-08-31,2.3725"></textarea>
+            </label>
+            <div class="adm-form__row adm-form__row--mid">
+              <label class="adm-file">
+                <input type="file" id="importFile" accept=".csv,.txt,text/csv,text/plain">
+                <span class="aqx-btn aqx-btn--secondary aqx-btn--sm">Choose CSV file</span>
+              </label>
+              <span class="adm-hint" id="importSummary"></span>
+            </div>
+            <fieldset class="adm-radio">
+              <legend class="adm-sr">Import mode</legend>
+              <label><input type="radio" name="importMode" value="merge" checked> Add to the history (matching dates are replaced)</label>
+              <label><input type="radio" name="importMode" value="replace"> Replace the whole history with these rows</label>
+            </fieldset>
+            <div class="adm-form__actions">
+              <button type="submit" class="aqx-btn aqx-btn--primary aqx-btn--md" id="importBtn">Import</button>
+            </div>
+          </form>
+        </section>
+      </div>
+
+      <!-- Points table -->
+      <section class="adm-card" id="tableCard" hidden>
+        <div class="adm-card__hd">
+          <h3>Price history</h3>
+          <button type="button" class="aqx-btn aqx-btn--secondary aqx-btn--sm" id="exportBtn">Export CSV</button>
+        </div>
+        <div class="adm-tablewrap">
+          <table class="adm-table">
+            <thead><tr><th scope="col">Date</th><th scope="col" class="num">Price</th><th scope="col" class="num">Change</th><th scope="col"><span class="adm-sr">Actions</span></th></tr></thead>
+            <tbody id="pointsBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Asset settings -->
+      <section class="adm-card" id="assetCard" hidden>
+        <h3 id="assetCardTitle">Asset settings</h3>
+        <form id="assetForm" class="adm-form" novalidate>
+          <div class="adm-form__row">
+            <label class="adm-field">
+              <span>Symbol</span>
+              <input type="text" id="assetSymbol" class="adm-input adm-input--mono" maxlength="20" autocomplete="off" spellcheck="false" placeholder="AQUGSPOT" required>
+            </label>
+            <label class="adm-field adm-field--grow">
+              <span>Name</span>
+              <input type="text" id="assetName" class="adm-input" maxlength="80" autocomplete="off" placeholder="AQUA-INDEX™ Global" required>
+            </label>
+          </div>
+          <div class="adm-form__row">
+            <label class="adm-field">
+              <span>Tab label</span>
+              <input type="text" id="assetLabel" class="adm-input" maxlength="12" autocomplete="off" spellcheck="false" placeholder="Same as symbol">
+            </label>
+            <label class="adm-field">
+              <span>Decimals shown</span>
+              <input type="number" id="assetDecimals" class="adm-input adm-input--num" min="0" max="8" step="1" value="4" required>
+            </label>
+            <label class="adm-field">
+              <span>Display order</span>
+              <input type="number" id="assetSort" class="adm-input adm-input--num" step="1" value="0" required>
+            </label>
+          </div>
+          <p class="adm-hint" id="assetHint">The symbol is the asset's permanent identifier — letters, digits, dot, dash or underscore. The tab label is the short text on the site's chart tab. Lower display order comes first.</p>
+          <div class="adm-form__actions">
+            <button type="submit" class="aqx-btn aqx-btn--primary aqx-btn--md" id="assetSaveBtn">Save asset</button>
+            <button type="button" class="aqx-btn aqx-btn--ghost aqx-btn--md" id="assetCancelBtn" hidden>Cancel</button>
+            <button type="button" class="aqx-btn aqx-btn--ghost aqx-btn--md adm-danger" id="assetDeleteBtn">Delete asset…</button>
+          </div>
+        </form>
+      </section>
+
+    </div>
+  </main>
+
+  <div class="adm-toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="/assets/js/chart.js"></script>
+  <script src="/admin/xlsx-prices.js"></script>
+  <script src="/admin/admin.js"></script>
+</body>
+</html>

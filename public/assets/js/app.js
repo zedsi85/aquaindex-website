@@ -1,6 +1,7 @@
 /* ============================================================
    AquaIndex marketing site — behaviour & generated visuals.
-   - AquaIndex Global index (AQUGSPOT) loaded from data/aquaindex-global.csv
+   - Asset prices (hero panel + top ticker) from the price API, with
+     data/aquaindex-global.csv as the offline fallback
    - 12 agricultural-futures ticker with optional live prices
      (provider + key set in assets/js/config.js)
    - Interactive platform stack, team roster, scroll-reveal motion
@@ -28,7 +29,14 @@
     Lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>',
     Globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18"/>',
     Activity: '<path d="M3 12h4l3 8 4-16 3 8h4"/>',
-    External: '<path d="M14 4h6v6M20 4l-9 9M19 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1h5"/>'
+    External: '<path d="M14 4h6v6M20 4l-9 9M19 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1h5"/>',
+    Close: '<path d="M6 6l12 12M18 6L6 18"/>'
+  };
+
+  /* Brand marks — filled, 24px grid. */
+  var BRAND_PATHS = {
+    X: 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z',
+    YouTube: 'M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z'
   };
 
   function icon(name, size, sw) {
@@ -47,38 +55,17 @@
       var name = el.getAttribute('data-icon');
       var size = parseFloat(el.getAttribute('data-size')) || 20;
       if (name === 'LinkedIn') { el.innerHTML = LINKEDIN; return; }
+      if (BRAND_PATHS[name]) {
+        el.innerHTML = '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="' + BRAND_PATHS[name] + '"/></svg>';
+        return;
+      }
       el.innerHTML = icon(name, size, parseFloat(el.getAttribute('data-sw')) || 1.75);
     });
   }
 
   /* ---------------------------------------------------------
-     Charts — pure SVG, token-driven.
+     Hero backdrop — the price chart itself lives in chart.js.
      --------------------------------------------------------- */
-  function indexChart(opts) {
-    opts = opts || {};
-    var pts = opts.data || [];
-    var h = opts.height || 150, w = 720, pad = 10, id = opts.id || 'idx';
-    var stroke = opts.stroke || 'var(--navy-700)';
-    var max = Math.max.apply(null, pts), min = Math.min.apply(null, pts);
-    var x = function (i) { return pad + (i * (w - pad * 2)) / (pts.length - 1); };
-    var y = function (v) { return pad + (h - pad * 2) * (1 - (v - min) / (max - min || 1)); };
-    var line = pts.map(function (v, i) { return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1); }).join(' ');
-    var area = line + ' L' + x(pts.length - 1) + ' ' + (h - pad) + ' L' + x(0) + ' ' + (h - pad) + ' Z';
-    var grid = [0.2, 0.4, 0.6, 0.8].map(function (g) {
-      var gy = pad + (h - pad * 2) * g;
-      return '<line x1="' + pad + '" x2="' + (w - pad) + '" y1="' + gy + '" y2="' + gy + '" stroke="var(--viz-grid)" stroke-width="1"/>';
-    }).join('');
-    return '<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%" height="' + h + '" preserveAspectRatio="none" style="display:block">' +
-      '<defs><linearGradient id="' + id + 'fill" x1="0" y1="0" x2="0" y2="1">' +
-      '<stop offset="0%" stop-color="var(--aqua-500)" stop-opacity="0.20"/>' +
-      '<stop offset="100%" stop-color="var(--aqua-500)" stop-opacity="0"/></linearGradient></defs>' +
-      grid +
-      '<path d="' + area + '" fill="url(#' + id + 'fill)"/>' +
-      '<path d="' + line + '" fill="none" stroke="' + stroke + '" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" pathLength="1" class="aqx-draw"/>' +
-      '<circle cx="' + x(pts.length - 1) + '" cy="' + y(pts[pts.length - 1]) + '" r="4.5" fill="var(--aqua-500)" stroke="#fff" stroke-width="2" class="aqx-mark"/>' +
-      '</svg>';
-  }
-
   function heroWaves() {
     var W = 1440, H = 360, N = 96;
     function sinePath(amp, yBase, phase, periods, close) {
@@ -126,31 +113,25 @@
     return html;
   }
 
-  function sparkline(opts) {
-    opts = opts || {};
-    var pts = opts.data || [4, 6, 5, 8, 7, 10, 9, 12, 14, 13, 16];
-    var w = opts.w || 96, h = opts.h || 28, stroke = opts.stroke || 'var(--aqua-500)';
-    var max = Math.max.apply(null, pts), min = Math.min.apply(null, pts);
-    var x = function (i) { return (i * w) / (pts.length - 1); };
-    var y = function (v) { return h - 2 - (h - 4) * ((v - min) / (max - min || 1)); };
-    var line = pts.map(function (v, i) { return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1); }).join(' ');
-    return '<svg viewBox="0 0 ' + w + ' ' + h + '" width="' + w + '" height="' + h + '" style="display:block">' +
-      '<path d="' + line + '" fill="none" stroke="' + stroke + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  }
-
   /* ---------------------------------------------------------
-     AquaIndex Global index — from data/aquaindex-global.csv.
-     Until traded prices exist this is the AquaIndex Global
-     index (Bloomberg AQUGSPOT); replace the CSV to update.
+     Asset prices — the hero panel and the top ticker.
+
+     Assets and their price history are entered by an admin at
+     /admin and served by the price API (/api/assets). The first
+     asset in display order is the primary one: it feeds the top
+     ticker and is shown first in the hero panel; the others are
+     reachable from the tabs above the chart.
+
+     If the API fails, or has not answered within a few seconds,
+     the panel shows data/aquaindex-global.csv instead (the API's
+     answer still wins when it arrives). Until either loads the
+     panel shows dashes rather than made-up numbers.
      --------------------------------------------------------- */
-  var FALLBACK_SERIES = [
-    ['2025-01-31', 2.1180], ['2025-02-28', 2.1240], ['2025-03-31', 2.1105],
-    ['2025-04-30', 2.1420], ['2025-05-30', 2.1610], ['2025-06-30', 2.1555],
-    ['2025-07-31', 2.1840], ['2025-08-29', 2.1790], ['2025-09-30', 2.2085],
-    ['2025-10-31', 2.2260], ['2025-11-28', 2.2410], ['2025-12-31', 2.2725],
-    ['2026-01-30', 2.2900], ['2026-02-27', 2.2810], ['2026-03-31', 2.3120],
-    ['2026-04-30', 2.3390], ['2026-05-29', 2.3305], ['2026-06-30', 2.3450]
-  ];
+  var FALLBACK_ASSET = { symbol: 'AQUGSPOT', name: 'AQUA-INDEX™ Global', decimals: 4 };
+  var FALLBACK_AFTER_MS = 4000;
+
+  var API_BASE = (CFG.apiBase == null ? '/api' : CFG.apiBase).replace(/\/$/, '');
+  var market = { assets: [FALLBACK_ASSET], active: FALLBACK_ASSET.symbol, series: {}, live: false, apiDown: false };
 
   function parseCsv(text) {
     var rows = [];
@@ -167,11 +148,41 @@
     return (p >= 0 ? '▲ ' : '▼ ') + Math.abs(p).toFixed(2) + '%';
   }
 
-  function renderIndex(rows) {
-    if (!rows || rows.length < 2) rows = FALLBACK_SERIES;
-    var values = rows.map(function (r) { return r[1]; });
+  function decimalsOf(asset) {
+    return asset && asset.decimals != null ? asset.decimals : 4;
+  }
+
+  /* Top ticker — always the primary asset. */
+  function renderTicker(rows, asset) {
+    if (!rows || rows.length < 2) return;
     var last = rows[rows.length - 1], prev = rows[rows.length - 2];
-    var delta = (last[1] / prev[1] - 1) * 100;
+    var delta = prev[1] ? (last[1] / prev[1] - 1) * 100 : 0;
+    var el;
+    if ((el = document.getElementById('tickerIndexVal'))) el.textContent = last[1].toFixed(decimalsOf(asset));
+    if ((el = document.getElementById('tickerIndexDelta'))) {
+      el.textContent = fmtPct(delta);
+      el.className = delta >= 0 ? 'up' : 'dn';
+    }
+  }
+
+  /* Hero panel before any data has loaded: same footprint, no numbers. */
+  function renderHeroPlaceholder() {
+    var el;
+    if ((el = document.getElementById('heroChart'))) {
+      el.innerHTML = '<div class="aqx-chart" style="height:150px"></div><div class="aqx-chart__axis"><span>&nbsp;</span></div>';
+    }
+    if ((el = document.getElementById('heroTable'))) {
+      var row = '<div class="ws-hero__tblr"><span>—</span><strong>—</strong></div>';
+      el.innerHTML = '<div class="ws-hero__tblhd"><span>Date</span><span>Index</span></div>' + row + row + row + row + row;
+    }
+  }
+
+  /* Hero panel — the asset selected in the tabs. */
+  function renderHero(rows, asset) {
+    if (!rows || rows.length < 2) return;
+    var dec = decimalsOf(asset);
+    var values = rows.map(function (r) { return r[1]; });
+    var last = rows[rows.length - 1];
 
     // YTD: against the last print of the previous calendar year (or the first row).
     var lastYear = last[0].slice(0, 4);
@@ -179,32 +190,126 @@
     for (var i = rows.length - 1; i >= 0; i--) {
       if (rows[i][0].slice(0, 4) < lastYear) { ytdBase = rows[i]; break; }
     }
-    var ytd = (last[1] / ytdBase[1] - 1) * 100;
+    var ytd = ytdBase[1] ? (last[1] / ytdBase[1] - 1) * 100 : 0;
 
     var el;
-    if ((el = document.getElementById('tickerIndexVal'))) el.textContent = last[1].toFixed(4);
-    if ((el = document.getElementById('tickerIndexDelta'))) {
-      el.textContent = fmtPct(delta);
-      el.className = delta >= 0 ? 'up' : 'dn';
+    if ((el = document.getElementById('heroTitle'))) el.textContent = asset.name + ' · ' + asset.symbol;
+    if ((el = document.getElementById('heroIndexVal'))) el.textContent = last[1].toFixed(dec);
+    if ((el = document.getElementById('heroYtd'))) {
+      el.textContent = fmtPct(ytd).replace('▲ ', '+').replace('▼ ', '−') + ' YTD';
+      el.parentNode.classList.toggle('is-down', ytd < 0);
     }
-    if ((el = document.getElementById('heroIndexVal'))) el.textContent = last[1].toFixed(4);
-    if ((el = document.getElementById('heroYtd'))) el.textContent = fmtPct(ytd).replace('▲ ', '+').replace('▼ ', '−') + ' YTD';
-    if ((el = document.getElementById('heroSpark'))) el.innerHTML = sparkline({ data: values.slice(-11) });
-    if ((el = document.getElementById('heroChart'))) el.innerHTML = indexChart({ data: values, id: 'hero', height: 150 });
+    if ((el = document.getElementById('heroSpark'))) {
+      el.innerHTML = window.AQXChart.sparkline({
+        data: values.slice(-11),
+        stroke: ytd < 0 ? 'var(--red-500)' : 'var(--aqua-500)'
+      });
+    }
+    if ((el = document.getElementById('heroChart'))) {
+      // Light line and faint grid: the hero panel is dark.
+      window.AQXChart.mount(el, {
+        rows: rows, id: 'hero', height: 150, decimals: dec, label: asset.name + ' price history',
+        stroke: 'var(--aqua-400)', grid: 'rgba(255,255,255,0.10)'
+      });
+    }
     if ((el = document.getElementById('heroTable'))) {
       var recent = rows.slice(-5).reverse();
       el.innerHTML = '<div class="ws-hero__tblhd"><span>Date</span><span>Index</span></div>' +
         recent.map(function (r) {
-          return '<div class="ws-hero__tblr"><span>' + r[0] + '</span><strong>' + r[1].toFixed(4) + '</strong></div>';
+          return '<div class="ws-hero__tblr"><span>' + esc(r[0]) + '</span><strong>' + r[1].toFixed(dec) + '</strong></div>';
         }).join('');
     }
   }
 
-  function loadIndex() {
-    fetch('data/aquaindex-global.csv')
+  function getJson(url) {
+    return fetch(url, { headers: { Accept: 'application/json' } }).then(function (r) {
+      if (!r.ok) throw new Error(r.status);
+      return r.json();
+    });
+  }
+
+  function loadSeries(symbol) {
+    if (market.series[symbol]) return Promise.resolve(market.series[symbol]);
+    return getJson(API_BASE + '/assets/' + encodeURIComponent(symbol) + '/prices').then(function (d) {
+      if (!d || !Array.isArray(d.points) || d.points.length < 2) throw new Error('empty series');
+      market.series[symbol] = d.points;
+      return d.points;
+    });
+  }
+
+  function buildAssetTabs() {
+    var el = document.getElementById('heroTabs');
+    if (!el) return;
+    if (market.assets.length < 2) { el.hidden = true; el.innerHTML = ''; return; }
+    el.hidden = false;
+    el.innerHTML = market.assets.map(function (a) {
+      var on = a.symbol === market.active;
+      return '<button type="button" role="tab" class="ws-hero__tab' + (on ? ' is-active' : '') + '" aria-selected="' + on +
+        '" data-symbol="' + esc(a.symbol) + '" title="' + esc(a.name) + '">' + esc(a.label || a.symbol) + '</button>';
+    }).join('');
+    el.querySelectorAll('.ws-hero__tab').forEach(function (b) {
+      b.addEventListener('click', function () { selectAsset(b.getAttribute('data-symbol')); });
+    });
+  }
+
+  function selectAsset(symbol) {
+    var asset = market.assets.filter(function (a) { return a.symbol === symbol; })[0];
+    if (!asset) return Promise.resolve();
+    market.active = symbol;
+    document.querySelectorAll('.ws-hero__tab').forEach(function (b) {
+      var on = b.getAttribute('data-symbol') === symbol;
+      b.classList.toggle('is-active', on);
+      b.setAttribute('aria-selected', on);
+    });
+    return loadSeries(symbol).then(function (rows) {
+      if (market.active !== symbol) return; // a later click won
+      renderHero(rows, asset);
+      if (asset === market.assets[0]) renderTicker(rows, asset);
+    });
+  }
+
+  function loadCsvFallback() {
+    return fetch('data/aquaindex-global.csv')
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
-      .then(function (t) { renderIndex(parseCsv(t)); })
-      .catch(function () { renderIndex(FALLBACK_SERIES); });
+      .then(function (t) {
+        var rows = parseCsv(t);
+        if (rows.length < 2 || market.live) return; // the API answered in the meantime
+        renderHero(rows, FALLBACK_ASSET);
+        renderTicker(rows, FALLBACK_ASSET);
+      })
+      .catch(function () { /* nothing to show — the panel keeps its dashes */ });
+  }
+
+  function loadMarket() {
+    var fellBack = false;
+    var fallback = function () {
+      if (fellBack || market.live) return;
+      fellBack = true;
+      loadCsvFallback();
+    };
+    var slow = setTimeout(fallback, FALLBACK_AFTER_MS);
+
+    getJson(API_BASE + '/assets')
+      .catch(function (err) {
+        market.apiDown = true; // no backend on this host — the contact buttons use contactUrl instead
+        throw err;
+      })
+      .then(function (d) {
+        var live = (d && d.assets || []).filter(function (a) { return a.points >= 2; });
+        if (!live.length) throw new Error('no assets');
+        return loadSeries(live[0].symbol).then(function () {
+          clearTimeout(slow);
+          market.live = true;
+          market.assets = live;
+          market.active = live[0].symbol;
+          buildAssetTabs();
+          return selectAsset(market.active);
+        });
+      })
+      .catch(function () {
+        clearTimeout(slow);
+        fallback();
+      });
   }
 
   /* ---------------------------------------------------------
@@ -486,16 +591,154 @@
   }
 
   /* ---------------------------------------------------------
-     Contact links — single source of truth in config.js.
+     Contact — the buttons open a form whose message is emailed
+     to the AquaIndex inbox by the backend (POST /api/contact).
+     Without the form (old browser, contactForm: false in
+     config.js, or a host that has no backend) the buttons
+     follow contactUrl instead.
      --------------------------------------------------------- */
-  function initContactLinks() {
-    if (!CFG.contactUrl) return;
-    document.querySelectorAll('[data-contact]').forEach(function (a) {
-      a.setAttribute('href', CFG.contactUrl);
-      if (/^https?:/.test(CFG.contactUrl)) {
-        a.setAttribute('target', '_blank');
-        a.setAttribute('rel', 'noopener noreferrer');
+  function initContact() {
+    var links = document.querySelectorAll('[data-contact]');
+    if (CFG.contactUrl) {
+      links.forEach(function (a) {
+        a.setAttribute('href', CFG.contactUrl);
+        if (/^https?:/.test(CFG.contactUrl)) {
+          a.setAttribute('target', '_blank');
+          a.setAttribute('rel', 'noopener noreferrer');
+        }
+      });
+    }
+
+    var dialog = document.getElementById('contactDialog');
+    var form = document.getElementById('contactForm');
+    if (CFG.contactForm === false || !dialog || !form || typeof dialog.showModal !== 'function') return;
+
+    var formView = document.getElementById('contactFormView');
+    var doneView = document.getElementById('contactDoneView');
+    var errorEl = document.getElementById('contactError');
+    var submit = document.getElementById('contactSubmit');
+    var fallbackEmail = /^mailto:/.test(CFG.contactUrl || '') ? CFG.contactUrl.replace(/^mailto:/, '').split('?')[0] : '';
+    var sending = false, sent = false;
+
+    function fieldError(name, message) {
+      var input = form.elements[name];
+      var slot = form.querySelector('[data-err="' + name + '"]');
+      if (slot) slot.textContent = message || '';
+      if (input) {
+        if (message) input.setAttribute('aria-invalid', 'true');
+        else input.removeAttribute('aria-invalid');
       }
+    }
+
+    function clearErrors() {
+      ['name', 'email', 'company', 'message'].forEach(function (n) { fieldError(n, ''); });
+      errorEl.hidden = true;
+      errorEl.textContent = '';
+    }
+
+    /* A failure the visitor can act on: say what happened and offer the email address. */
+    function showFailure(message) {
+      errorEl.textContent = message + ' ';
+      if (fallbackEmail) {
+        errorEl.appendChild(document.createTextNode('You can also email us at '));
+        var a = document.createElement('a');
+        a.href = 'mailto:' + fallbackEmail;
+        a.textContent = fallbackEmail;
+        errorEl.appendChild(a);
+        errorEl.appendChild(document.createTextNode('.'));
+      }
+      errorEl.hidden = false;
+    }
+
+    function validate(values) {
+      var errors = {};
+      if (!values.name) errors.name = 'Please enter your name.';
+      if (!values.email) errors.email = 'Please enter your email address.';
+      else if (!/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]{2,}$/.test(values.email)) errors.email = 'That email address does not look right.';
+      if (values.message.length < 10) errors.message = 'Please write a few words about your question.';
+      return errors;
+    }
+
+    function open() {
+      if (sent) { // start fresh after a sent message
+        form.reset();
+        sent = false;
+      }
+      clearErrors();
+      doneView.hidden = true;
+      formView.hidden = false;
+      if (!dialog.open) dialog.showModal();
+      form.elements.name.focus();
+    }
+
+    links.forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        if (market.apiDown) return; // the form could not send from here: follow contactUrl (mailto)
+        e.preventDefault();
+        open();
+      });
+    });
+    dialog.querySelectorAll('[data-contact-close]').forEach(function (b) {
+      b.addEventListener('click', function () { dialog.close(); });
+    });
+    dialog.addEventListener('click', function (e) { if (e.target === dialog) dialog.close(); }); // backdrop
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (sending) return;
+      clearErrors();
+      var values = {
+        name: form.elements.name.value.trim(),
+        email: form.elements.email.value.trim(),
+        company: form.elements.company.value.trim(),
+        message: form.elements.message.value.trim(),
+        website: form.elements.website.value
+      };
+      var errors = validate(values), first = null;
+      ['name', 'email', 'message'].forEach(function (n) {
+        if (errors[n]) { fieldError(n, errors[n]); first = first || n; }
+      });
+      if (first) { form.elements[first].focus(); return; }
+
+      sending = true;
+      submit.disabled = true;
+      submit.textContent = 'Sending…';
+      fetch(API_BASE + '/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(values)
+      }).then(function (r) {
+        return r.text().then(function (text) {
+          var data = null;
+          try { data = JSON.parse(text); } catch (err) { /* not JSON: the API is not there */ }
+          return { ok: r.ok && !!data && data.ok === true, status: r.status, data: data };
+        });
+      }).then(function (res) {
+        if (res.ok) {
+          sent = true;
+          document.getElementById('contactDoneText').textContent =
+            'Thank you, ' + values.name + '. The AquaIndex team will reply to ' + values.email + '.';
+          formView.hidden = true;
+          doneView.hidden = false;
+          document.getElementById('contactDoneTitle').focus();
+          return;
+        }
+        var d = res.data || {};
+        if (res.status === 400 && d.field && d.error) {
+          fieldError(d.field, d.error);
+          if (form.elements[d.field]) form.elements[d.field].focus();
+        } else if (res.status === 429 && d.error) {
+          showFailure(d.error);
+        } else {
+          showFailure('Sorry — your message could not be sent just now. Please try again in a moment.');
+        }
+      }).catch(function () {
+        showFailure('Sorry — your message could not be sent. Check your connection and try again.');
+      }).then(function () {
+        sending = false;
+        submit.disabled = false;
+        submit.textContent = 'Send message';
+      });
     });
   }
 
@@ -553,12 +796,12 @@
     var ticker = document.querySelector('.ws-ticker__belt');
     if (ticker) buildTickerBelt(ticker);
 
-    renderIndex(FALLBACK_SERIES); // instant paint; CSV replaces it as soon as it loads
-    loadIndex();
+    renderHeroPlaceholder();
+    loadMarket();
     initLivePrices();
     buildTeam(root);
     initPlatform(root, reduced);
-    initContactLinks();
+    initContact();
     fillIcons(document);
     initReveal(root, reduced);
   }

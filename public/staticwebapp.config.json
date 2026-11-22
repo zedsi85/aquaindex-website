@@ -1,0 +1,30 @@
+{
+  "platform": {
+    "apiRuntime": "node:22"
+  },
+  "routes": [
+    {
+      "route": "/admin",
+      "allowedRoles": ["admin"]
+    },
+    {
+      "route": "/admin/*",
+      "allowedRoles": ["admin"],
+      "headers": {
+        "Cache-Control": "no-store",
+        "X-Frame-Options": "DENY"
+      }
+    },
+    {
+      "route": "/api/manage/*",
+      "allowedRoles": ["admin"]
+    }
+  ],
+  "responseOverrides": {
+    "401": { "rewrite": "/signin.html" },
+    "403": { "rewrite": "/signin.html" }
+  },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff"
+  }
+}

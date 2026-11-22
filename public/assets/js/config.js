@@ -3,12 +3,17 @@
    ============================================================ */
 window.AQX_CONFIG = {
 
-  /* Where the "Contact" and "Talk to the team" buttons point.
-     PLACEHOLDER — replace with the real address, e.g.:
-       'mailto:contact@aqua-index.com'
-     or a page URL:
-       'https://www.aqua-index.com/contact'                      */
+  /* Contact.
+     The "Contact" and "Talk to the team" buttons open the contact
+     form; the message is emailed to the AquaIndex inbox by the
+     backend (POST /api/contact — the recipient is set there, in
+     the CONTACT_TO app setting).
+     contactUrl is the fallback: it is where the buttons point if
+     the form cannot open, and the address offered if sending
+     fails. Set contactForm to false to skip the form and use
+     contactUrl directly.                                        */
   contactUrl: 'mailto:info@aqua-index.com',
+  contactForm: true,
 
   /* Live commodity-futures prices for the ticker.
      Set a provider + API key to activate; leave provider null to
@@ -21,6 +26,12 @@ window.AQX_CONFIG = {
   pricesApiKey: '76b87e4f-5347-4669-b67f-aaa3ab837f1a',
 
   /* How often to refresh live prices (milliseconds). */
-  refreshMs: 5 * 60 * 1000
+  refreshMs: 5 * 60 * 1000,
+
+  /* Price API that serves the assets and price history entered at
+     /admin. '/api' is the Azure Static Web Apps backend that ships
+     with this repo (see api/). If it cannot be reached the hero
+     chart falls back to data/aquaindex-global.csv.                */
+  apiBase: '/api'
 
 };
