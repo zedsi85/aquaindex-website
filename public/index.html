@@ -56,9 +56,10 @@
         </div>
       </div>
       <div class="ws-hero__panel">
+        <div class="ws-hero__tabs" id="heroTabs" role="tablist" aria-label="Assets" hidden></div>
         <div class="ws-hero__panelhd">
           <div>
-            <div class="ws-hero__panelt">AQUA-INDEX™ Global · AQUGSPOT</div>
+            <div class="ws-hero__panelt" id="heroTitle">AQUA-INDEX™ Global · AQUGSPOT</div>
             <div class="ws-hero__panelv"><span id="heroIndexVal">—</span></div>
           </div>
           <div class="ws-hero__paneld"><span id="heroSpark"></span> <span id="heroYtd"></span></div>
@@ -312,6 +313,10 @@
         <div>
           <img src="assets/logo/aqua-index-logo-white.png" alt="AquaIndex">
           <p class="ws-ft__tag">Market infrastructure for water as a global asset class — pricing, collateralization, instruments, and tokenization.</p>
+          <div class="ws-ft__social">
+            <a href="https://x.com/AquaIndexGlobal" target="_blank" rel="noopener noreferrer" aria-label="AquaIndex on X (@AquaIndexGlobal)" title="X — @AquaIndexGlobal"><span data-icon="X" data-size="17"></span></a>
+            <a href="https://www.youtube.com/@AquaIndex" target="_blank" rel="noopener noreferrer" aria-label="AquaIndex on YouTube (@AquaIndex)" title="YouTube — @AquaIndex"><span data-icon="YouTube" data-size="20"></span></a>
+          </div>
         </div>
         <div><h5>Company</h5><a href="#introduction">Background</a><a href="#impact">Ramifications</a><a href="#why">Water as a commodity</a><a href="#team">Our team</a></div>
         <div><h5>Markets</h5><a href="#benchmark">The Benchmark</a><a href="#benchmark">Indices</a><a href="#tokenization">Tokenization</a><a href="#platform">Platform</a></div>
@@ -325,7 +330,61 @@
   </footer>
 
 </div>
+
+<!-- ============ Contact form ============ -->
+<dialog class="ws-modal" id="contactDialog" aria-labelledby="contactTitle">
+  <div class="ws-modal__box">
+    <button type="button" class="ws-modal__close" aria-label="Close" data-contact-close><span data-icon="Close" data-size="20"></span></button>
+
+    <div id="contactFormView">
+      <div class="ws-eyebrow ws-eyebrow--ink">Contact</div>
+      <h2 id="contactTitle">Talk to the AquaIndex team</h2>
+      <p class="ws-modal__lead">Tell us who you are and what you would like to know. We reply by email.</p>
+      <form id="contactForm" class="ws-form" novalidate>
+        <div class="ws-form__row">
+          <label class="ws-field">
+            <span class="ws-field__label">Name</span>
+            <input class="ws-input" type="text" name="name" maxlength="100" autocomplete="name" required>
+            <span class="ws-field__err" data-err="name"></span>
+          </label>
+          <label class="ws-field">
+            <span class="ws-field__label">Email</span>
+            <input class="ws-input" type="email" name="email" maxlength="254" autocomplete="email" inputmode="email" required>
+            <span class="ws-field__err" data-err="email"></span>
+          </label>
+        </div>
+        <label class="ws-field">
+          <span class="ws-field__label">Organization <i>optional</i></span>
+          <input class="ws-input" type="text" name="company" maxlength="120" autocomplete="organization">
+          <span class="ws-field__err" data-err="company"></span>
+        </label>
+        <label class="ws-field">
+          <span class="ws-field__label">Your question</span>
+          <textarea class="ws-input ws-input--area" name="message" rows="5" maxlength="5000" required></textarea>
+          <span class="ws-field__err" data-err="message"></span>
+        </label>
+        <div class="ws-hp" aria-hidden="true">
+          <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+        </div>
+        <p class="ws-form__error" id="contactError" role="alert" hidden></p>
+        <div class="ws-form__actions">
+          <button type="submit" class="aqx-btn aqx-btn--primary aqx-btn--md" id="contactSubmit">Send message</button>
+          <span class="ws-form__note">Your details are used only to answer your question.</span>
+        </div>
+      </form>
+    </div>
+
+    <div id="contactDoneView" class="ws-modal__done" hidden>
+      <div class="ws-modal__tick"><span data-icon="Check" data-size="26" data-sw="2.25"></span></div>
+      <h2 tabindex="-1" id="contactDoneTitle">Message sent</h2>
+      <p id="contactDoneText"></p>
+      <button type="button" class="aqx-btn aqx-btn--secondary aqx-btn--md" data-contact-close>Close</button>
+    </div>
+  </div>
+</dialog>
+
 <script src="assets/js/config.js"></script>
+<script src="assets/js/chart.js"></script>
 <script src="assets/js/app.js"></script>
 </body>
 </html>

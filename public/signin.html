@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>AquaIndex — Admin sign-in</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="/assets/logo/aqua-index-mark-color.png">
+  <link rel="stylesheet" href="/assets/css/styles.css">
+  <style>
+    body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:var(--space-6) var(--space-4);
+      background:radial-gradient(900px 480px at 70% -10%, rgba(0,176,208,0.16), transparent 60%),linear-gradient(180deg,var(--abyss-900),var(--abyss-800));}
+    .si{width:100%;max-width:400px;background:var(--surface-card);border-radius:var(--radius-xl);padding:var(--space-8);box-shadow:var(--shadow-deep);}
+    .si img{height:30px;display:block;margin-bottom:var(--space-6);}
+    .si h1{font-size:var(--text-2xl);letter-spacing:var(--ls-tight);margin:0 0 var(--space-2);}
+    .si p{margin:0 0 var(--space-6);color:var(--text-body);}
+    .si__btns{display:flex;flex-direction:column;gap:var(--space-3);}
+    .si__note{margin:var(--space-6) 0 0 !important;font-size:var(--text-xs);color:var(--text-muted) !important;}
+    .si__who{font-weight:var(--fw-semibold);color:var(--text-strong);overflow-wrap:anywhere;}
+  </style>
+</head>
+<body>
+  <main class="si">
+    <img src="/assets/logo/aqua-index-logo-color.png" alt="AquaIndex">
+
+    <div id="signedOut">
+      <h1>Admin sign-in</h1>
+      <p>Sign in with the account that was invited to manage AquaIndex price data.</p>
+      <div class="si__btns">
+        <a class="aqx-btn aqx-btn--primary aqx-btn--lg" href="/.auth/login/aad?post_login_redirect_uri=/admin/">Sign in with Microsoft</a>
+        <a class="aqx-btn aqx-btn--secondary aqx-btn--lg" href="/.auth/login/github?post_login_redirect_uri=/admin/">Sign in with GitHub</a>
+      </div>
+      <p class="si__note"><a href="/">← Back to the website</a></p>
+    </div>
+
+    <div id="notAdmin" hidden>
+      <h1>No admin access</h1>
+      <p>You are signed in as <span class="si__who" id="who"></span>, but this account has not been given the admin role. Ask the site owner for an invitation, then sign in again.</p>
+      <div class="si__btns">
+        <a class="aqx-btn aqx-btn--primary aqx-btn--lg" href="/.auth/logout?post_logout_redirect_uri=/admin/">Sign out and use another account</a>
+      </div>
+      <p class="si__note"><a href="/">← Back to the website</a></p>
+    </div>
+  </main>
+
+  <script>
+    fetch('/.auth/me', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var p = d && d.clientPrincipal;
+        if (!p) return;
+        if ((p.userRoles || []).indexOf('admin') !== -1) { location.replace('/admin/'); return; }
+        document.getElementById('who').textContent = p.userDetails || 'this account';
+        document.getElementById('signedOut').hidden = true;
+        document.getElementById('notAdmin').hidden = false;
+      })
+      .catch(function () { /* stay on the sign-in view */ });
+  </script>
+</body>
+</html>
