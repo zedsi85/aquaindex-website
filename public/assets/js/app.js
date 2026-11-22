@@ -131,7 +131,7 @@
   var FALLBACK_AFTER_MS = 4000;
 
   var API_BASE = (CFG.apiBase == null ? '/api' : CFG.apiBase).replace(/\/$/, '');
-  var market = { assets: [FALLBACK_ASSET], active: FALLBACK_ASSET.symbol, series: {}, live: false };
+  var market = { assets: [FALLBACK_ASSET], active: FALLBACK_ASSET.symbol, series: {}, live: false, apiDown: false };
 
   function parseCsv(text) {
     var rows = [];
@@ -290,6 +290,10 @@
     var slow = setTimeout(fallback, FALLBACK_AFTER_MS);
 
     getJson(API_BASE + '/assets')
+      .catch(function (err) {
+        market.apiDown = true; // no backend on this host — the contact buttons use contactUrl instead
+        throw err;
+      })
       .then(function (d) {
         var live = (d && d.assets || []).filter(function (a) { return a.points >= 2; });
         if (!live.length) throw new Error('no assets');
@@ -589,8 +593,9 @@
   /* ---------------------------------------------------------
      Contact — the buttons open a form whose message is emailed
      to the AquaIndex inbox by the backend (POST /api/contact).
-     Without the form (old browser, or contactForm: false in
-     config.js) the buttons fall back to contactUrl.
+     Without the form (old browser, contactForm: false in
+     config.js, or a host that has no backend) the buttons
+     follow contactUrl instead.
      --------------------------------------------------------- */
   function initContact() {
     var links = document.querySelectorAll('[data-contact]');
@@ -667,7 +672,11 @@
     }
 
     links.forEach(function (a) {
-      a.addEventListener('click', function (e) { e.preventDefault(); open(); });
+      a.addEventListener('click', function (e) {
+        if (market.apiDown) return; // the form could not send from here: follow contactUrl (mailto)
+        e.preventDefault();
+        open();
+      });
     });
     dialog.querySelectorAll('[data-contact-close]').forEach(function (b) {
       b.addEventListener('click', function () { dialog.close(); });
