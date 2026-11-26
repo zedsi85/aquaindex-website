@@ -1,9 +1,10 @@
 /* ============================================================
-   Contact form.
+   Website form — WaterToken prelaunch registration.
 
-   POST /api/contact   { name, email, company?, message }
-     → emails the enquiry to the AquaIndex inbox (reply-to set to
-       the visitor), after recording it in the AqxContact table.
+   POST /api/contact   { name, email, company?, message? }
+     → emails the registration to the AquaIndex inbox (reply-to
+       set to the visitor), after recording it in the AqxContact
+       table.
 
    Public and unauthenticated, so it is defended: a hidden
    "website" field that only bots fill in, strict length limits,
@@ -31,7 +32,7 @@ app.http('contact-send', {
     if (parsed.error) return json(400, { error: parsed.error, field: parsed.field });
 
     const config = contact.mailConfig();
-    if (!config) return fail(503, 'The contact form is not set up yet.');
+    if (!config) return fail(503, 'The form is not set up yet.');
 
     const now = new Date();
     const sender = contact.senderKey(request);
@@ -45,7 +46,7 @@ app.http('contact-send', {
     } catch (err) {
       context.error('contact email failed', err);
       await contact.mark(id, 'failed', err.message).catch(() => {});
-      return fail(502, 'Your message could not be sent just now.');
+      return fail(502, 'Your registration could not be sent just now.');
     }
     return json(200, { ok: true });
   })

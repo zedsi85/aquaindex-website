@@ -1,6 +1,8 @@
 /* ============================================================
-   Contact enquiries — validation, a record of each message, and
-   delivery by email (Azure Communication Services).
+   Website form — WaterToken prelaunch registrations (name, email,
+   organization): validation, a record of each one, and delivery
+   by email (Azure Communication Services). A free-text message
+   is optional; when one is sent it is delivered as an enquiry.
 
    App settings
      ACS_CONNECTION_STRING   Communication Services connection string
@@ -8,9 +10,9 @@
      CONTACT_TO              recipient (default info@aqua-index.com)
      TABLES_CONNECTION_STRING  (shared with the price store)
 
-   Every message is written to the AqxContact table before it is
-   emailed, so an enquiry is never lost if delivery fails. The
-   same table backs the rate limits.
+   Every submission is written to the AqxContact table before it
+   is emailed, so a registration is never lost if delivery fails.
+   The same table backs the rate limits.
    ============================================================ */
 'use strict';
 
@@ -26,7 +28,7 @@ const PER_SENDER_PER_HOUR = 5;   // per network address
 const TOTAL_PER_DAY = 200;       // across everyone
 const SEND_WAIT_MS = 20000;
 
-const LIMITS = { name: 100, email: 254, company: 120, messageMin: 10, messageMax: 5000 };
+const LIMITS = { name: 100, email: 254, company: 120, messageMax: 5000 };
 const EMAIL_RE = /^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]{2,}$/;
 
 function mailConfig() {
@@ -62,7 +64,6 @@ function parseEnquiry(body) {
   if (!email) return { field: 'email', error: 'Please enter your email address.' };
   if (email.length > LIMITS.email || !EMAIL_RE.test(email)) return { field: 'email', error: 'That email address does not look right.' };
   if (company.length > LIMITS.company) return { field: 'company', error: 'That organization name is too long.' };
-  if (message.length < LIMITS.messageMin) return { field: 'message', error: 'Please write a few words about your question.' };
   if (message.length > LIMITS.messageMax) return { field: 'message', error: 'Please keep the message under ' + LIMITS.messageMax + ' characters.' };
   return { fields: { name, email, company, message } };
 }
@@ -87,8 +88,8 @@ async function rateLimit(sender, now) {
     total++;
     if (e.sender === sender && e.rowKey >= hourAgo) mine++;
   }
-  if (mine >= PER_SENDER_PER_HOUR) return 'You have sent several messages in the last hour. Please try again later.';
-  if (total >= TOTAL_PER_DAY) return 'The contact form is very busy right now. Please try again later.';
+  if (mine >= PER_SENDER_PER_HOUR) return 'You have submitted this form several times in the last hour. Please try again later.';
+  if (total >= TOTAL_PER_DAY) return 'The form is very busy right now. Please try again later.';
   return null;
 }
 
@@ -110,31 +111,32 @@ async function mark(rowKey, status, detail) {
 
 const escHtml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+/* Without a message it is a prelaunch registration; with one, an enquiry. */
 function compose(fields) {
   const who = fields.name + (fields.company ? ' (' + fields.company + ')' : '');
-  const lines = [
+  const enquiry = !!fields.message;
+  const intro = enquiry ? '' : 'New registration of early interest in WaterToken.';
+  const footer = 'Sent from the ' + (enquiry ? 'contact' : 'Join Prelaunch') + ' form on the AquaIndex website. ' +
+    'Reply to this email to write to ' + fields.name + ' directly.';
+  const lines = (intro ? [intro, ''] : []).concat([
     'Name: ' + fields.name,
     'Email: ' + fields.email,
-    'Organization: ' + (fields.company || '—'),
-    '',
-    fields.message,
-    '',
-    '—',
-    'Sent from the contact form on the AquaIndex website. Reply to this email to answer ' + fields.name + ' directly.'
-  ];
+    'Organization: ' + (fields.company || '—')
+  ], enquiry ? ['', fields.message] : [], ['', '—', footer]);
   const row = (label, value) => '<tr><td style="padding:4px 16px 4px 0;color:#677788;white-space:nowrap;vertical-align:top">' +
     label + '</td><td style="padding:4px 0;color:#161F2B">' + value + '</td></tr>';
   const html =
     '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:#161F2B">' +
+    (intro ? '<p style="margin:0 0 12px">' + intro + '</p>' : '') +
     '<table style="border-collapse:collapse;margin-bottom:16px">' +
     row('Name', escHtml(fields.name)) +
     row('Email', '<a href="mailto:' + escHtml(fields.email) + '">' + escHtml(fields.email) + '</a>') +
     row('Organization', escHtml(fields.company || '—')) +
     '</table>' +
-    '<div style="white-space:pre-wrap;border-left:3px solid #00B0D0;padding:4px 0 4px 14px">' + escHtml(fields.message) + '</div>' +
-    '<p style="color:#677788;font-size:12px;margin-top:20px">Sent from the contact form on the AquaIndex website. ' +
-    'Reply to this email to answer ' + escHtml(fields.name) + ' directly.</p></div>';
-  return { subject: 'Website enquiry from ' + who, plainText: lines.join('\n'), html };
+    (enquiry ? '<div style="white-space:pre-wrap;border-left:3px solid #00B0D0;padding:4px 0 4px 14px">' + escHtml(fields.message) + '</div>' : '') +
+    '<p style="color:#677788;font-size:12px;margin-top:20px">' + escHtml(footer) + '</p></div>';
+  const subject = (enquiry ? 'Website enquiry from ' : 'WaterToken prelaunch registration: ') + who;
+  return { subject, plainText: lines.join('\n'), html };
 }
 
 /* Resolves to 'sent' or 'queued' (accepted, outcome not known yet); rejects if the send fails. */

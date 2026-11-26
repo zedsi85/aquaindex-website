@@ -12,8 +12,9 @@ Hosted on **Azure Static Web Apps** in the AquaIndex tenant (`aqua-index.com`):
 
 | | |
 |---|---|
-| Site | https://lively-island-0b1a6020f.5.azurestaticapps.net |
-| Admin | https://lively-island-0b1a6020f.5.azurestaticapps.net/admin/ |
+| Site | https://www.aqua-index.com (also https://aqua-index.com) |
+| Admin | https://www.aqua-index.com/admin/ |
+| Azure hostname | `lively-island-0b1a6020f.5.azurestaticapps.net` — the DNS target of both domains |
 | Subscription | Aquaindex Subscription |
 | Resource group | `rg-aquaindex-website` |
 | Static Web App | `swa-aquaindex-website` (Free plan, East US 2) |
@@ -118,31 +119,33 @@ Send them the link it prints. Remove access from the same *Role management* scre
 | `POST /api/manage/assets/{symbol}/prices` | admin | `{ points: [{date, value}], replace }` — up to 20000 per request |
 | `DELETE /api/manage/assets/{symbol}/prices/{date}` | admin | Remove one price |
 
-| `POST /api/contact` | public | `{ name, email, company?, message }` — emails the enquiry |
+| `POST /api/contact` | public | `{ name, email, company?, message? }` — emails the prelaunch registration |
 
 Secrets live in the Static Web App's application settings, not in this repo:
 `TABLES_CONNECTION_STRING`, `ACS_CONNECTION_STRING`, `CONTACT_FROM`, `CONTACT_TO`.
 
-## Contact form
+## Join Prelaunch form
 
-The **Contact** and **Talk to the team** buttons open a form (name, email, organization, question).
-Submitting it emails the enquiry to **info@aqua-index.com** with the visitor as the reply-to, so
-answering is just "Reply".
+The **Join Prelaunch** buttons (header, collateral section, footer) open the "Register for early
+interest in WaterToken" form: name, email and an optional organization. Submitting it emails the
+registration to **info@aqua-index.com** with the visitor as the reply-to, so answering is just
+"Reply". The form ends with the social links and a line pointing to info@aqua-index.com for
+more information.
 
 - The recipient is the `CONTACT_TO` application setting — change it there, no redeploy needed.
 - Mail is sent by Azure Communication Services from an Azure-managed address
   (`DoNotReply@<id>.azurecomm.net`). To send from an `aqua-index.com` address, add a custom domain
   to `acs-email-aquaindex-website` in the portal, verify it in DNS, link it to
   `acs-aquaindex-website`, and set `CONTACT_FROM` to the new sender.
-- Every enquiry is also written to the `AqxContact` table with its delivery status, so nothing is
+- Every registration is also written to the `AqxContact` table with its delivery status, so nothing is
   lost if an email fails.
-- Abuse limits: a hidden field that only bots fill in, 5 messages per hour per network address,
+- Abuse limits: a hidden field that only bots fill in, 5 submissions per hour per network address,
   200 per day in total, and a fixed recipient (the form cannot be used to mail anyone else).
 - If the form cannot send (or the site runs on a host without the API), it says so and offers the
   email address from `contactUrl` in `config.js`.
 
-The footer links to X (`@AquaIndexGlobal`) and YouTube (`@AquaIndex`); edit them in
-`public/index.html`.
+The footer and the form both link to LinkedIn, X, Instagram, Facebook and YouTube; the links are
+listed twice in `public/index.html` (footer and form) — edit both.
 
 ## Deploy
 
@@ -156,8 +159,11 @@ account, Static Web App and email service, stores the settings, seeds a brand-ne
 AQUGSPOT history and deploys. Both scripts target the subscription named "Aquaindex Subscription";
 set `AZURE_SUBSCRIPTION` to use another.
 
-`vercel.json` / `netlify.toml` still describe a static-only deployment of `public/` (no API, so the
-chart shows the CSV fallback). They can be removed once the domain points at Azure.
+The domain's DNS is at Cloudflare: `aqua-index.com` and `www` are CNAMEs to the Azure hostname,
+set to "DNS only" so Azure issues and renews the certificates.
+
+`vercel.json` / `netlify.toml` describe the earlier static-only deployment of `public/` (no API).
+The domain no longer points there, so they and the Vercel project can be removed.
 
 ## Run locally
 
@@ -187,11 +193,11 @@ The local emulator does not enforce the role rule on `/admin/` pages the way Azu
 Frozen header + futures ticker · Hero (asset price panel) · Logic strip · Introduction ·
 Why a market? · Water as collateral · Tokenization layer (lifecycle) · Platform (interactive stack,
 auto-cycles until touched) · The Benchmark (Bloomberg indices) · Impact · Team · Global acceptance ·
-Vision · Footer (with X and YouTube links) · Contact form (dialog).
+Vision · Footer (with social links) · Join Prelaunch form (dialog).
 
 ## Configuration (public/assets/js/config.js)
 
-- `contactUrl` — fallback address for the contact buttons (mailto: or URL); `contactForm: false`
+- `contactUrl` — fallback address for the Join Prelaunch buttons (mailto: or URL); `contactForm: false`
   skips the form and uses it directly.
 - `pricesProvider` + `pricesApiKey` — live futures prices in the ticker. Supported:
   `commoditypriceapi` (all 12 futures, one request), `apininjas` (one request per future),
