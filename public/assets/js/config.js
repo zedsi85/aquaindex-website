@@ -3,16 +3,16 @@
    ============================================================ */
 window.AQX_CONFIG = {
 
-  /* Contact.
-     The "Contact" and "Talk to the team" buttons open the contact
-     form; the message is emailed to the AquaIndex inbox by the
-     backend (POST /api/contact — the recipient is set there, in
-     the CONTACT_TO app setting).
+  /* Prelaunch registration.
+     The "Join Prelaunch" buttons open the registration form
+     (name, email, organization); each registration is emailed to
+     the AquaIndex inbox by the backend (POST /api/contact — the
+     recipient is set there, in the CONTACT_TO app setting).
      contactUrl is the fallback: it is where the buttons point if
      the form cannot open, and the address offered if sending
      fails. Set contactForm to false to skip the form and use
      contactUrl directly.                                        */
-  contactUrl: 'mailto:info@aqua-index.com',
+  contactUrl: 'mailto:info@aqua-index.com?subject=WaterToken%20prelaunch',
   contactForm: true,
 
   /* Live commodity-futures prices for the ticker.
